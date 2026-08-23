@@ -4,6 +4,7 @@ import LoginView from "@/views/LoginView.vue";
 import AboutView from "@/views/AboutView.vue";
 import AccessDeniedView from "@/views/AccessDeniedView.vue";
 import { isAuthenticated } from "@/auth";
+import GrantsView from "@/views/GrantsView.vue";
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     path: "/access-denied",
     name: "Access Denied",
     component: AccessDeniedView,
+  },
+  {
+    path: "/grants",
+    name: "Grants",
+    component: GrantsView,
   },
 ];
 
