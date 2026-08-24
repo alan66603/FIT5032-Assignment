@@ -80,6 +80,7 @@ const submitForm = () => {
           :class="{ 'is-invalid': errors.email }"
           @blur="validateEmail(true)"
           @input="validateEmail(false)"
+          placeholder="priya.n@example.com"
         />
         <div class="invalid-feedback">{{ errors.email }}</div>
       </div>
@@ -93,11 +94,16 @@ const submitForm = () => {
           :class="{ 'is-invalid': errors.password }"
           @blur="validatePassword(true)"
           @input="validatePassword(false)"
+          placeholder="••••••••"
         />
         <div class="invalid-feedback">{{ errors.password }}</div>
       </div>
 
-      <button type="submit" class="btn btn-dark">Log In</button>
+      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">Log In</button>
+
+      <p class="text-center small text-muted">
+        New here? Register as a <a href="#">Volunteer</a> or <a href="#">Corporate Partner</a>
+      </p>
     </form>
   </div>
 </template>
