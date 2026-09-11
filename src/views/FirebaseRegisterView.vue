@@ -1,17 +1,36 @@
 <script setup>
 import { ref } from 'vue'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
+import { getFirestore, doc, setDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
 
 const email = ref('')
 const password = ref('')
+const role = ref('')
 const router = useRouter()
 const auth = getAuth()
+const db = getFirestore()
+
+// Roles a user may pick at registration. Admin is assigned manually in
+// Firebase Console so nobody can self-promote.
+const roles = [
+  { value: 'volunteer', label: 'Volunteer' },
+  { value: 'corporate', label: 'Corporate Partner' },
+]
 
 const register = () => {
   createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then(() => {
+    .then((data) => {
       console.log('Firebase Register Successful!')
+      // Document ID = uid so each user has exactly one profile that can be
+      // looked up directly after login without a query.
+      return setDoc(doc(db, 'users', data.user.uid), {
+        email: email.value,
+        role: role.value,
+      })
+    })
+    .then(() => {
+      console.log('Firestore user profile saved!')
       router.push('/FireLogin')
     })
     .catch((error) => {
@@ -29,6 +48,14 @@ const register = () => {
     </div>
     <div class="mb-3">
       <input v-model="password" type="password" class="form-control" placeholder="Password" />
+    </div>
+    <div class="mb-3">
+      <select v-model="role" class="form-select">
+        <option value="" disabled>Select your role</option>
+        <option v-for="option in roles" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
     </div>
     <button type="button" class="btn btn-dark w-100 rounded-pill py-2 mb-3" @click="register">
       Save to Firebase
