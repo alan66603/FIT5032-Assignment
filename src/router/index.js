@@ -3,7 +3,7 @@ import HomePage from "@/views/HomePage.vue";
 import LoginView from "@/views/LoginView.vue";
 import AboutView from "@/views/AboutView.vue";
 import AccessDeniedView from "@/views/AccessDeniedView.vue";
-import { isAuthenticated } from "@/auth";
+import { currentUser, waitForAuthReady } from "@/auth";
 import GrantsView from "@/views/GrantsView.vue";
 import FirebaseSigninView from "@/views/FirebaseSigninView.vue";
 import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
@@ -52,8 +52,12 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+router.beforeEach(async (to) => {
+  // Wait for Firebase to restore the session so a page refresh on a
+  // protected route isn't misread as logged out.
+  await waitForAuthReady();
+
+  if (to.meta.requiresAuth && !currentUser.value) {
     return { name: "Access Denied", query: { from: to.fullPath } };
   }
 });

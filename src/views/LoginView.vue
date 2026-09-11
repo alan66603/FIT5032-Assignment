@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { isAuthenticated } from '@/auth';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 const router = useRouter()
+const auth = getAuth()
 
 const formData = ref({
     email: '',
@@ -15,11 +16,9 @@ const errors = ref({
     password: null,
 })
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const loginError = ref(null)
 
-function handleSubmit() {
-    console.log('submitted', form.email, form.password)
-}
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
  * Email validation: required, then format check via regex.
@@ -57,12 +56,20 @@ const validatePassword = (blur) => {
 const submitForm = () => {
   validateEmail(true)
   validatePassword(true)
+  loginError.value = null
 
   const hasError = Object.values(errors.value).some((message) => message !== null)
-  if (!hasError) {
-    isAuthenticated.value = true
-    router.push('/about')
-  }
+  if (hasError) return
+
+  signInWithEmailAndPassword(auth, formData.value.email.trim(), formData.value.password)
+    .then(() => {
+      console.log('Firebase Sign in Successful!')
+      router.push('/about')
+    })
+    .catch((error) => {
+      console.log(error.code)
+      loginError.value = 'Incorrect email or password.'
+    })
 }
 </script>
 
@@ -98,6 +105,8 @@ const submitForm = () => {
         />
         <div class="invalid-feedback">{{ errors.password }}</div>
       </div>
+
+      <div v-if="loginError" class="alert alert-danger py-2" role="alert">{{ loginError }}</div>
 
       <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">Log In</button>
 
