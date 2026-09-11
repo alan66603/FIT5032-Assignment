@@ -34,6 +34,9 @@ function handleLogout() {
                     <li class="nav-item">
                         <router-link class="nav-link" to="/about">About</router-link>
                     </li>
+                    <li class="nav-item">
+                        <router-link class="nav-link" to="/FireLogin">Firebase Login</router-link>
+                    </li>
                     <li class="nav-item" v-if="!isAuthenticated">
                         <router-link class="btn btn-dark rounded-pill px-4" to="/login">Log In</router-link>
                     </li>
