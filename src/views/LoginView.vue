@@ -2,9 +2,12 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { DASHBOARD_PATHS } from '@/auth';
 
 const router = useRouter()
 const auth = getAuth()
+const db = getFirestore()
 
 const formData = ref({
     email: '',
@@ -62,9 +65,14 @@ const submitForm = () => {
   if (hasError) return
 
   signInWithEmailAndPassword(auth, formData.value.email.trim(), formData.value.password)
-    .then(() => {
+    .then((data) => {
       console.log('Firebase Sign in Successful!')
-      router.push('/about')
+      // Read the role saved at registration to pick the right dashboard.
+      return getDoc(doc(db, 'users', data.user.uid))
+    })
+    .then((snap) => {
+      const role = snap.exists() ? snap.data().role : null
+      router.push(DASHBOARD_PATHS[role] ?? '/')
     })
     .catch((error) => {
       console.log(error.code)

@@ -5,6 +5,7 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { startAuthListener } from './auth'
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
@@ -23,5 +24,6 @@ const firebaseConfig = {
 
 // Initialize Firebase before the Vue app so getAuth() can find it.
 initializeApp(firebaseConfig)
+startAuthListener()
 
 createApp(App).use(router).mount('#app')

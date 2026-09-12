@@ -3,10 +3,13 @@ import HomePage from "@/views/HomePage.vue";
 import LoginView from "@/views/LoginView.vue";
 import AboutView from "@/views/AboutView.vue";
 import AccessDeniedView from "@/views/AccessDeniedView.vue";
-import { currentUser, waitForAuthReady } from "@/auth";
+import { currentUser, userRole, waitForAuthReady } from "@/auth";
 import GrantsView from "@/views/GrantsView.vue";
 import FirebaseSigninView from "@/views/FirebaseSigninView.vue";
 import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
+import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
+import CorporateDashboard from "@/views/dashboards/CorporateDashboard.vue";
+import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
 
 const routes = [
   {
@@ -45,6 +48,24 @@ const routes = [
     name: "FireRegister",
     component: FirebaseRegisterView,
   },
+  {
+    path: "/dashboard/volunteer",
+    name: "VolunteerDashboard",
+    component: VolunteerDashboard,
+    meta: { requiresAuth: true, allowedRoles: ["volunteer"] },
+  },
+  {
+    path: "/dashboard/corporate",
+    name: "CorporateDashboard",
+    component: CorporateDashboard,
+    meta: { requiresAuth: true, allowedRoles: ["corporate"] },
+  },
+  {
+    path: "/dashboard/admin",
+    name: "AdminDashboard",
+    component: AdminDashboard,
+    meta: { requiresAuth: true, allowedRoles: ["admin"] },
+  },
 ];
 
 const router = createRouter({
@@ -59,6 +80,11 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !currentUser.value) {
     return { name: "Access Denied", query: { from: to.fullPath } };
+  }
+
+  // Role-level protection: the route lists which roles may enter.
+  if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(userRole.value)) {
+    return { name: "Access Denied", query: { from: to.fullPath, reason: "role" } };
   }
 });
 
