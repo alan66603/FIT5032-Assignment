@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
 import { getFirestore, doc, setDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
+import { DASHBOARD_PATHS } from '@/auth'
 
 const email = ref('')
 const password = ref('')
@@ -103,7 +104,9 @@ const register = async () => {
       role: role.value,
     })
     console.log('Firestore user profile saved!')
-    router.push('/FireLogin')
+    // createUserWithEmailAndPassword also signs the new user in, so go
+    // straight to their dashboard instead of asking them to log in again.
+    router.push(DASHBOARD_PATHS[role.value])
   } catch (error) {
     console.error('Error creating user:', error)
     if (error.code === 'auth/email-already-in-use') {
