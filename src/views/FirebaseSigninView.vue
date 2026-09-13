@@ -118,7 +118,7 @@ const signin = async () => {
       <div v-if="loginError" class="alert alert-danger py-2" role="alert">{{ loginError }}</div>
 
       <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Signing in…' : 'Sign in via Firebase' }}
+        {{ isSubmitting ? 'Signing in…' : 'Sign in' }}
       </button>
 
       <p class="text-center small text-muted">
