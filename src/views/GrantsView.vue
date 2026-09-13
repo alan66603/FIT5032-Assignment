@@ -17,6 +17,16 @@ const filterGrants = computed(() => {
     })
 })
 
+/**
+ * grants.js stores ISO dates (YYYY-MM-DD) so they sort correctly; display
+ * them in Australian DD/MM/YYYY. String split avoids the timezone shift that
+ * new Date('YYYY-MM-DD') can introduce.
+ */
+function formatDate(isoDate) {
+  const [year, month, day] = isoDate.split('-')
+  return `${day}/${month}/${year}`
+}
+
 function statusBadgeClass(status) {
   if (status === 'Approved') return 'bg-success'
   if (status === 'In Review') return 'bg-warning text-dark'
@@ -116,7 +126,7 @@ const rateGrant = async (grantId, score) => {
 
         <p>We have {{ filterGrants.length }} grants.</p>
         <p v-if="!currentUser" class="small text-muted">
-            <router-link to="/login">Log in</router-link> to rate a grant.
+            <router-link to="/FireLogin">Log in</router-link> to rate a grant.
         </p>
 
         <table class="table">
@@ -138,7 +148,7 @@ const rateGrant = async (grantId, score) => {
                     <td>
                         <span class="badge" :class="statusBadgeClass(grant.status)">{{ grant.status }}</span>
                     </td>
-                    <td>{{ grant.date }}</td>
+                    <td>{{ formatDate(grant.date) }}</td>
                     <td>
                         <StarRating
                             :value="myRatings[grant.id] ?? 0"

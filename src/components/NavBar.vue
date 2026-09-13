@@ -45,14 +45,11 @@ const handleLogout = async () => {
                     <li class="nav-item">
                         <router-link class="nav-link" to="/about">About</router-link>
                     </li>
-                    <li class="nav-item">
-                        <router-link class="nav-link" to="/FireLogin">Firebase Login</router-link>
-                    </li>
                     <li class="nav-item" v-if="currentUser && DASHBOARD_PATHS[userRole]">
                         <router-link class="nav-link" :to="DASHBOARD_PATHS[userRole]">Dashboard</router-link>
                     </li>
                     <li class="nav-item" v-if="!currentUser">
-                        <router-link class="btn btn-dark rounded-pill px-4" to="/login">Log In</router-link>
+                        <router-link class="btn btn-dark rounded-pill px-4" to="/FireLogin">Log In</router-link>
                     </li>
                     <li class="nav-item" v-else>
                         <button type="button" class="btn btn-outline-dark btn-sm" @click="handleLogout">Log Out</button>
