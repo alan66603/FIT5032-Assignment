@@ -119,7 +119,7 @@ const submitForm = () => {
       <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">Log In</button>
 
       <p class="text-center small text-muted">
-        New here? Register as a <a href="#">Volunteer</a> or <a href="#">Corporate Partner</a>
+        New here? <router-link to="/FireRegister">Register as a Volunteer or Corporate Partner</router-link>
       </p>
     </form>
   </div>
