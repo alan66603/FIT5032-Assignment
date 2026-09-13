@@ -188,7 +188,7 @@ const register = async () => {
       <div v-if="registerError" class="alert alert-danger py-2" role="alert">{{ registerError }}</div>
 
       <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Creating account…' : 'Save to Firebase' }}
+        {{ isSubmitting ? 'Registering…' : 'Register' }}
       </button>
 
       <p class="text-center small text-muted">
