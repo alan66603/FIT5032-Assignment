@@ -48,6 +48,9 @@ const handleLogout = async () => {
                     <li class="nav-item" v-if="currentUser && DASHBOARD_PATHS[userRole]">
                         <router-link class="nav-link" :to="DASHBOARD_PATHS[userRole]">Dashboard</router-link>
                     </li>
+                    <li class="nav-item" v-if="currentUser">
+                        <router-link class="nav-link" to="/profile">Profile</router-link>
+                    </li>
                     <li class="nav-item" v-if="!currentUser">
                         <router-link class="btn btn-dark rounded-pill px-4" to="/FireLogin">Log In</router-link>
                     </li>

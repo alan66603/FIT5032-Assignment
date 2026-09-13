@@ -66,7 +66,7 @@ rating per grant; rating again overwrites rather than adds.
 | BR  | Requirement                    | Where                                                                                     |
 |-----|--------------------------------|-------------------------------------------------------------------------------------------|
 | C.1 | Authentication                 | `src/auth.js` (`onAuthStateChanged`), `FirebaseSigninView.vue`, `FirebaseRegisterView.vue`, `NavBar.vue` |
-| C.2 | Role-based authentication      | `src/router/index.js` (`meta.requiresAuth`, `meta.allowedRoles`), `src/views/dashboards/` |
+| C.2 | Role-based authentication      | `src/router/index.js` (`meta.requiresAuth` on `/profile`, `meta.allowedRoles` on dashboards), `src/views/dashboards/` |
 | C.3 | Rating (aggregate)             | `src/components/StarRating.vue`, `src/views/GrantsView.vue` (`onSnapshot` + `computed`)   |
 | C.4 | Security                       | Client-side validation in login/register forms; no `v-html`; `firestore.rules`            |
 
@@ -85,6 +85,7 @@ src/
     ├── GrantsView.vue
     ├── FirebaseSigninView.vue
     ├── FirebaseRegisterView.vue
+    ├── ProfileView.vue       # any signed-in user (requiresAuth)
     ├── AccessDeniedView.vue
     └── dashboards/       # one view per role
 ```

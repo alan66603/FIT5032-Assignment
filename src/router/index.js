@@ -9,6 +9,7 @@ import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
 import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
 import CorporateDashboard from "@/views/dashboards/CorporateDashboard.vue";
 import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
+import ProfileView from "@/views/ProfileView.vue";
 
 const routes = [
   {
@@ -20,7 +21,6 @@ const routes = [
     path: "/about",
     name: "About",
     component: AboutView,
-    meta: { requiresAuth: true },
   },
   {
     path: "/access-denied",
@@ -41,6 +41,12 @@ const routes = [
     path: "/FireRegister",
     name: "FireRegister",
     component: FirebaseRegisterView,
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: ProfileView,
+    meta: { requiresAuth: true },
   },
   {
     path: "/dashboard/volunteer",
