@@ -2,3 +2,10 @@
 /*.pdf
 
 /node_modules
+/dist
+.DS_Store
+
+# Environment variables (Firebase config). Keep .env.example committed.
+.env
+.env.local
+.env.*.local

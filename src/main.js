@@ -9,17 +9,17 @@ import { startAuthListener } from './auth'
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration.
+// Values live in .env (see .env.example) so they are not committed to git.
+// Vite only exposes variables prefixed with VITE_ to the browser bundle.
 const firebaseConfig = {
-  apiKey: 'AIzaSyDAkfyfUI24nXMBT9wFe44BMd3jpXWE7AE',
-  authDomain: 'fit5032-ass1-16223.firebaseapp.com',
-  projectId: 'fit5032-ass1-16223',
-  storageBucket: 'fit5032-ass1-16223.firebasestorage.app',
-  messagingSenderId: '85325607184',
-  appId: '1:85325607184:web:b652f5aed0a33a1f4fb595',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
 // Initialize Firebase before the Vue app so getAuth() can find it.
