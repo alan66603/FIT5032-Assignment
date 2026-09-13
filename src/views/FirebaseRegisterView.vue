@@ -32,7 +32,7 @@ const isSubmitting = ref(false)
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
- * Same blur-triggered pattern as LoginView: while typing (blur = false)
+ * Same blur-triggered pattern as FirebaseSigninView: while typing (blur = false)
  * only clear errors once valid; on blur/submit (blur = true) show them.
  */
 const validateEmail = (blur) => {
