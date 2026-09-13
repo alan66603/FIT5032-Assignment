@@ -73,22 +73,21 @@ const myRatings = computed(() => {
 
 // Document ID = grantId_uid so each user has one rating per grant and
 // rating again overwrites instead of adding a duplicate.
-const rateGrant = (grantId, score) => {
+const rateGrant = async (grantId, score) => {
   if (!currentUser.value) return
   const uid = currentUser.value.uid
 
-  setDoc(doc(db, 'ratings', `${grantId}_${uid}`), {
-    grantId,
-    uid,
-    score,
-    updatedAt: serverTimestamp(),
-  })
-    .then(() => {
-      console.log('Rating saved!')
+  try {
+    await setDoc(doc(db, 'ratings', `${grantId}_${uid}`), {
+      grantId,
+      uid,
+      score,
+      updatedAt: serverTimestamp(),
     })
-    .catch((error) => {
-      console.log(error.code)
-    })
+    console.log('Rating saved!')
+  } catch (error) {
+    console.error('Error saving rating:', error)
+  }
 }
 </script>
 

@@ -26,8 +26,9 @@ const initialAuth = new Promise((resolve) => {
 })
 let roleLoaded = Promise.resolve()
 
-export function waitForAuthReady() {
-  return initialAuth.then(() => roleLoaded)
+export async function waitForAuthReady() {
+  await initialAuth
+  await roleLoaded
 }
 
 /**
@@ -39,22 +40,23 @@ export function startAuthListener() {
   const auth = getAuth()
   const db = getFirestore()
 
-  onAuthStateChanged(auth, (user) => {
+  /** Read users/{uid}.role into userRole; a failed read must not block navigation. */
+  const loadRole = async (uid) => {
+    try {
+      const docSnap = await getDoc(doc(db, 'users', uid))
+      userRole.value = docSnap.exists() ? docSnap.data().role : null
+    } catch (error) {
+      console.error('Error loading user role:', error)
+      userRole.value = null
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
     currentUser.value = user
     userRole.value = null
 
-    roleLoaded = user
-      ? getDoc(doc(db, 'users', user.uid))
-          .then((snap) => {
-            userRole.value = snap.exists() ? snap.data().role : null
-          })
-          .catch((error) => {
-            // A failed read must not block navigation; treat as "no role".
-            console.log(error.code)
-            userRole.value = null
-          })
-      : Promise.resolve()
-
-    roleLoaded.then(resolveInitial)
+    roleLoaded = user ? loadRole(user.uid) : Promise.resolve()
+    await roleLoaded
+    resolveInitial()
   })
 }

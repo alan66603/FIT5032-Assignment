@@ -27,6 +27,7 @@ const errors = ref({
 })
 
 const registerError = ref(null)
+const isSubmitting = ref(false)
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -76,7 +77,7 @@ const validateRole = (blur) => {
   }
 }
 
-const register = () => {
+const register = async () => {
   validateEmail(true)
   validatePassword(true)
   validateConfirmPassword(true)
@@ -86,32 +87,37 @@ const register = () => {
   const hasError = Object.values(errors.value).some((message) => message !== null)
   if (hasError) return
 
-  createUserWithEmailAndPassword(auth, email.value.trim(), password.value)
-    .then((data) => {
-      console.log('Firebase Register Successful!')
-      // Document ID = uid so each user has exactly one profile that can be
-      // looked up directly after login without a query.
-      return setDoc(doc(db, 'users', data.user.uid), {
-        email: email.value.trim(),
-        role: role.value,
-      })
+  isSubmitting.value = true
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email.value.trim(),
+      password.value,
+    )
+    console.log('Firebase Register Successful!')
+
+    // Document ID = uid so each user has exactly one profile that can be
+    // looked up directly after login without a query.
+    await setDoc(doc(db, 'users', userCredential.user.uid), {
+      email: email.value.trim(),
+      role: role.value,
     })
-    .then(() => {
-      console.log('Firestore user profile saved!')
-      router.push('/FireLogin')
-    })
-    .catch((error) => {
-      console.log(error.code)
-      if (error.code === 'auth/email-already-in-use') {
-        registerError.value = 'An account with this email already exists.'
-      } else if (error.code === 'auth/invalid-email') {
-        registerError.value = 'Please enter a valid email address.'
-      } else if (error.code === 'auth/weak-password') {
-        registerError.value = 'Password is too weak.'
-      } else {
-        registerError.value = 'Registration failed. Please try again.'
-      }
-    })
+    console.log('Firestore user profile saved!')
+    router.push('/FireLogin')
+  } catch (error) {
+    console.error('Error creating user:', error)
+    if (error.code === 'auth/email-already-in-use') {
+      registerError.value = 'An account with this email already exists.'
+    } else if (error.code === 'auth/invalid-email') {
+      registerError.value = 'Please enter a valid email address.'
+    } else if (error.code === 'auth/weak-password') {
+      registerError.value = 'Password is too weak.'
+    } else {
+      registerError.value = 'Registration failed. Please try again.'
+    }
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -181,7 +187,9 @@ const register = () => {
 
       <div v-if="registerError" class="alert alert-danger py-2" role="alert">{{ registerError }}</div>
 
-      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">Save to Firebase</button>
+      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
+        {{ isSubmitting ? 'Creating account…' : 'Save to Firebase' }}
+      </button>
 
       <p class="text-center small text-muted">
         Already have an account? <router-link to="/FireLogin">Sign in</router-link>

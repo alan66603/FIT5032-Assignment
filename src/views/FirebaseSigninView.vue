@@ -11,20 +11,19 @@ const router = useRouter()
 const auth = getAuth()
 const db = getFirestore()
 
-const signin = () => {
-  signInWithEmailAndPassword(auth, email.value, password.value)
-    .then((data) => {
-      console.log('Firebase Sign in Successful!')
-      console.log(auth.currentUser) // To check the current user signed in
-      return getDoc(doc(db, 'users', data.user.uid))
-    })
-    .then((snap) => {
-      const role = snap.exists() ? snap.data().role : null
-      router.push(DASHBOARD_PATHS[role] ?? '/')
-    })
-    .catch((error) => {
-      console.log(error.code)
-    })
+const signin = async () => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value)
+    console.log('Firebase Sign in Successful!')
+    console.log(auth.currentUser) // To check the current user signed in
+
+    // Read the role saved at registration to pick the right dashboard.
+    const docSnap = await getDoc(doc(db, 'users', userCredential.user.uid))
+    const role = docSnap.exists() ? docSnap.data().role : null
+    router.push(DASHBOARD_PATHS[role] ?? '/')
+  } catch (error) {
+    console.error('Error signing in:', error)
+  }
 }
 </script>
 

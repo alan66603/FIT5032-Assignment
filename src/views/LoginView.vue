@@ -20,6 +20,7 @@ const errors = ref({
 })
 
 const loginError = ref(null)
+const isSubmitting = ref(false)
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -56,7 +57,7 @@ const validatePassword = (blur) => {
   }
 }
 
-const submitForm = () => {
+const submitForm = async () => {
   validateEmail(true)
   validatePassword(true)
   loginError.value = null
@@ -64,20 +65,27 @@ const submitForm = () => {
   const hasError = Object.values(errors.value).some((message) => message !== null)
   if (hasError) return
 
-  signInWithEmailAndPassword(auth, formData.value.email.trim(), formData.value.password)
-    .then((data) => {
-      console.log('Firebase Sign in Successful!')
-      // Read the role saved at registration to pick the right dashboard.
-      return getDoc(doc(db, 'users', data.user.uid))
-    })
-    .then((snap) => {
-      const role = snap.exists() ? snap.data().role : null
-      router.push(DASHBOARD_PATHS[role] ?? '/')
-    })
-    .catch((error) => {
-      console.log(error.code)
-      loginError.value = 'Incorrect email or password.'
-    })
+  isSubmitting.value = true
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      formData.value.email.trim(),
+      formData.value.password,
+    )
+    console.log('Firebase Sign in Successful!')
+
+    // Read the role saved at registration to pick the right dashboard.
+    const docSnap = await getDoc(doc(db, 'users', userCredential.user.uid))
+    const role = docSnap.exists() ? docSnap.data().role : null
+    router.push(DASHBOARD_PATHS[role] ?? '/')
+  } catch (error) {
+    console.error('Error signing in:', error)
+    // Same message for wrong password and unknown email so the form
+    // does not reveal which accounts exist.
+    loginError.value = 'Incorrect email or password.'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -116,7 +124,9 @@ const submitForm = () => {
 
       <div v-if="loginError" class="alert alert-danger py-2" role="alert">{{ loginError }}</div>
 
-      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3">Log In</button>
+      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
+        {{ isSubmitting ? 'Logging in…' : 'Log In' }}
+      </button>
 
       <p class="text-center small text-muted">
         New here? <router-link to="/FireRegister">Register as a Volunteer or Corporate Partner</router-link>

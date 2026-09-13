@@ -6,15 +6,14 @@ import { currentUser, userRole, DASHBOARD_PATHS } from '@/auth';
 const router = useRouter()
 const auth = getAuth()
 
-const handleLogout = () => {
-    signOut(auth)
-        .then(() => {
-            console.log('Firebase Sign out Successful!')
-            router.push('/')
-        })
-        .catch((error) => {
-            console.log(error.code)
-        })
+const handleLogout = async () => {
+    try {
+        await signOut(auth)
+        console.log('Firebase Sign out Successful!')
+        router.push('/')
+    } catch (error) {
+        console.error('Error signing out:', error)
+    }
 }
 </script>
 
