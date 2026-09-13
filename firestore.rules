@@ -1,0 +1,68 @@
+// Firestore Security Rules for GreenRoots Melbourne.
+//
+// Deploy: Firebase Console > Firestore Database > Rules > paste > Publish.
+// These replace the "test mode" rules, which let anyone read/write everything.
+//
+// Data model:
+//   users/{uid}                 { email, role }              one profile per account
+//   ratings/{grantId}_{uid}     { grantId, uid, score, updatedAt }  one rating per user per grant
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ---- users ----------------------------------------------------------
+    match /users/{uid} {
+      // A user can read their own profile; admins can read anyone's.
+      allow read: if isOwner(uid) || isAdmin();
+
+      // Created once at registration, by the account owner, with a
+      // self-selectable role only. Admin is granted manually in the Console.
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['email', 'role'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role in ['volunteer', 'corporate'];
+
+      // Owner may update their profile but never change their own role.
+      allow update: if isOwner(uid)
+        && request.resource.data.role == resource.data.role;
+
+      allow delete: if false;
+    }
+
+    // ---- ratings --------------------------------------------------------
+    match /ratings/{ratingId} {
+      // Averages are shown to everyone, including logged-out visitors.
+      allow read: if true;
+
+      // Only a signed-in user may write, only under their own uid, only with
+      // a 1-5 integer score, and only to the document ID the app derives
+      // from grantId + uid (so one user cannot create extra ratings).
+      allow create, update: if isOwner(request.resource.data.uid)
+        && request.resource.data.keys().hasOnly(['grantId', 'uid', 'score', 'updatedAt'])
+        && request.resource.data.grantId is int
+        && ratingId == string(request.resource.data.grantId) + '_' + request.auth.uid
+        && request.resource.data.score is int
+        && request.resource.data.score >= 1
+        && request.resource.data.score <= 5;
+
+      allow delete: if isOwner(resource.data.uid);
+    }
+
+    // Everything else is denied by default.
+  }
+}
