@@ -67,4 +67,28 @@ const handleLogout = async () => {
 .brand-text {
     letter-spacing: 0.08em;
 }
+
+/* Hamburger button feedback: hover/press tint, and a filled state while the
+   menu is open. Bootstrap toggles aria-expanded for us. */
+.navbar-toggler {
+    border-color: #dee2e6;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.navbar-toggler:hover {
+    background-color: #f1f3f5;
+}
+.navbar-toggler:active {
+    transform: scale(0.94);
+}
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.15);
+}
+.navbar-toggler[aria-expanded='true'] {
+    background-color: #212529;
+    border-color: #212529;
+}
+.navbar-toggler[aria-expanded='true'] .navbar-toggler-icon {
+    /* Bootstrap's dark-navbar icon: white lines */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
 </style>
