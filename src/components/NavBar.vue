@@ -1,10 +1,10 @@
 <script setup>
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { useRouter } from 'vue-router';
+import { auth } from '@/firebase/init';
 import { currentUser, userRole, DASHBOARD_PATHS } from '@/auth';
 
 const router = useRouter()
-const auth = getAuth()
 
 const handleLogout = async () => {
     try {

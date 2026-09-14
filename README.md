@@ -75,7 +75,8 @@ rating per grant; rating again overwrites rather than adds.
 ```
 src/
 ├── auth.js               # shared auth state: currentUser, userRole, waitForAuthReady()
-├── main.js               # Firebase initializeApp() + Vue app bootstrap
+├── main.js               # Vue app bootstrap
+├── firebase/init.js      # initializeApp() from .env; exports auth and db
 ├── router/index.js       # routes and navigation guard
 ├── components/
 │   ├── NavBar.vue

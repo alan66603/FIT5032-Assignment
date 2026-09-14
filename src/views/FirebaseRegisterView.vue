@@ -1,8 +1,9 @@
 <script setup>
 import { ref } from 'vue'
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth'
-import { getFirestore, doc, setDoc } from 'firebase/firestore'
+import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
+import { auth, db } from '@/firebase/init'
 import { DASHBOARD_PATHS } from '@/auth'
 
 const email = ref('')
@@ -10,8 +11,6 @@ const password = ref('')
 const confirmPassword = ref('')
 const role = ref('')
 const router = useRouter()
-const auth = getAuth()
-const db = getFirestore()
 
 // Roles a user may pick at registration. Admin is assigned manually in
 // Firebase Console so nobody can self-promote.

@@ -1,10 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
 import { grants } from '@/data/grants'
-
-const db = getFirestore()
 
 const myRatings = ref([])
 const isLoading = ref(true)

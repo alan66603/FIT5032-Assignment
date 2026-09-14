@@ -1,11 +1,10 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
-import { getFirestore, collection, doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase/init';
 import { grants } from '@/data/grants';
 import { currentUser } from '@/auth';
 import StarRating from '@/components/StarRating.vue';
-
-const db = getFirestore()
 
 const searchTerm = ref('')
 
