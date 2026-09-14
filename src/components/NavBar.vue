@@ -72,10 +72,12 @@ const handleLogout = async () => {
    menu is open. Bootstrap toggles aria-expanded for us. */
 .navbar-toggler {
     border-color: #dee2e6;
-    transition: background-color 0.15s ease, transform 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 .navbar-toggler:hover {
-    background-color: #f1f3f5;
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    transform: scale(1.06);
 }
 .navbar-toggler:active {
     transform: scale(0.94);
