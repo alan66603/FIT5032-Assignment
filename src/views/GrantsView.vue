@@ -101,69 +101,111 @@ const rateGrant = async (grantId, score) => {
 </script>
 
 <template>
-    <div class="container py-5">
-        <h1>Community Greening Grants</h1>
-        <input
-            v-model="searchTerm"
-            type="text"
-            class="form-control mb-3"
-            style="max-width: 400px"
-            placeholder="Search by project name"
-        />
+    <!-- Banner -->
+    <section class="page-banner">
+        <div class="container">
+            <p class="eyebrow mb-2">Funding local projects</p>
+            <h1 class="display-6 fw-bold mb-2">Community Greening Grants</h1>
+            <p class="lead mb-0">Browse the projects we fund and rate the ones you care about.</p>
+        </div>
+    </section>
 
-        <div class="mb-3">
-            <div class="form-check form-check-inline" v-for="status in Object.keys(statusFilters)" :key="status">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    :id="'status-' + status"
-                    v-model="statusFilters[status]"
-                />
-                <label class="form-check-label" :for="'status-' + status">{{ status }}</label>
+    <div class="container py-5">
+        <!-- Search + status filters -->
+        <div class="card p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <input
+                        v-model="searchTerm"
+                        type="text"
+                        class="form-control rounded-pill"
+                        placeholder="🔍 Search by project name"
+                    />
+                </div>
+                <div class="col-md-7">
+                    <div class="form-check form-check-inline" v-for="status in Object.keys(statusFilters)" :key="status">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            :id="'status-' + status"
+                            v-model="statusFilters[status]"
+                        />
+                        <label class="form-check-label" :for="'status-' + status">{{ status }}</label>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <p>We have {{ filterGrants.length }} grants.</p>
-        <p v-if="!currentUser" class="small text-muted">
-            <router-link to="/FireLogin">Log in</router-link> to rate a grant.
-        </p>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="mb-0 fw-semibold">Showing {{ filterGrants.length }} of {{ grants.length }} grants</p>
+            <p v-if="!currentUser" class="small text-muted mb-0">
+                <router-link to="/FireLogin">Log in</router-link> to rate a grant.
+            </p>
+        </div>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Project Name</th>
-                    <th>Surburb</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Rating</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="grant in filterGrants" :key="grant.id">
-                    <td>{{ grant.project }}</td>
-                    <td>{{ grant.suburb }}</td>
-                    <td>${{ grant.amount.toLocaleString() }}</td>
-                    <td>
-                        <span class="badge" :class="statusBadgeClass(grant.status)">{{ grant.status }}</span>
-                    </td>
-                    <td>{{ formatDate(grant.date) }}</td>
-                    <td>
-                        <StarRating
-                            :value="myRatings[grant.id] ?? 0"
-                            :disabled="!currentUser"
-                            @rate="rateGrant(grant.id, $event)"
-                        />
-                        <div class="small text-muted">
-                            <template v-if="ratingStats[grant.id]">
-                                {{ ratingStats[grant.id].average.toFixed(1) }} / 5
-                                ({{ ratingStats[grant.id].count }})
-                            </template>
-                            <template v-else>No ratings yet</template>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="card overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Project</th>
+                            <th>Suburb</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="grant in filterGrants" :key="grant.id">
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center">
+                                    <img :src="grant.image" :alt="grant.project" class="grant-thumb me-3" />
+                                    <div>
+                                        <div class="fw-semibold">{{ grant.project }}</div>
+                                        <div class="small text-muted grant-desc">{{ grant.description }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ grant.suburb }}</td>
+                            <td class="fw-semibold">${{ grant.amount.toLocaleString() }}</td>
+                            <td>
+                                <span class="badge rounded-pill" :class="statusBadgeClass(grant.status)">{{ grant.status }}</span>
+                            </td>
+                            <td>{{ formatDate(grant.date) }}</td>
+                            <td>
+                                <StarRating
+                                    :value="myRatings[grant.id] ?? 0"
+                                    :disabled="!currentUser"
+                                    @rate="rateGrant(grant.id, $event)"
+                                />
+                                <div class="small text-muted">
+                                    <template v-if="ratingStats[grant.id]">
+                                        {{ ratingStats[grant.id].average.toFixed(1) }} / 5
+                                        ({{ ratingStats[grant.id].count }})
+                                    </template>
+                                    <template v-else>No ratings yet</template>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr v-if="filterGrants.length === 0">
+                            <td colspan="6" class="text-center text-muted py-5">No grants match your search.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </template>
+
+<style scoped>
+.grant-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+}
+.grant-desc {
+    max-width: 320px;
+}
+</style>
