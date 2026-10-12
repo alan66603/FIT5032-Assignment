@@ -1,0 +1,28 @@
+// Firebase Storage Security Rules for GreenRoots Melbourne.
+//
+// Files:
+//   avatars/{uid}/original    the picture the user uploads
+//   avatars/{uid}/thumb.jpg   200x200 thumbnail made by the makeAvatarThumbnail Cloud Function
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /avatars/{uid}/{fileName} {
+      // Any signed-in user can see profile pictures.
+      allow read: if request.auth != null;
+
+      // Users may only upload their own original picture, it must be an
+      // image, and at most 5 MB. The thumbnail is written by the Cloud
+      // Function (Admin SDK), which these rules do not restrict.
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && fileName == 'original'
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Everything else is denied by default.
+  }
+}
