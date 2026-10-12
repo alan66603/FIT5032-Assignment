@@ -18,9 +18,9 @@ const handleLogout = async () => {
 </script>
 
 <template>
-    <nav class="navbar navbar-expand-lg bg-white border-bottom py-3">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom py-3 sticky-top">
         <div class="container">
-            <router-link class="navbar-brand fw-bold brand-text" to="/">GREENROOTS</router-link>
+            <router-link class="navbar-brand fw-bold brand-text text-brand" to="/">🌿 GREENROOTS</router-link>
 
             <button
                 class="navbar-toggler"
@@ -55,10 +55,10 @@ const handleLogout = async () => {
                         <router-link class="nav-link" to="/email">Email</router-link>
                     </li>
                     <li class="nav-item" v-if="!currentUser">
-                        <router-link class="btn btn-dark rounded-pill px-4" to="/FireLogin">Log In</router-link>
+                        <router-link class="btn btn-brand rounded-pill px-4" to="/FireLogin">Log In</router-link>
                     </li>
                     <li class="nav-item" v-else>
-                        <button type="button" class="btn btn-outline-dark btn-sm" @click="handleLogout">Log Out</button>
+                        <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="handleLogout">Log Out</button>
                     </li>
                 </ul>
             </div>
@@ -69,6 +69,18 @@ const handleLogout = async () => {
 <style scoped>
 .brand-text {
     letter-spacing: 0.08em;
+}
+
+/* Vue Router adds this class to the link of the page we are on */
+.nav-link {
+    font-weight: 500;
+}
+.nav-link:hover,
+.nav-link.router-link-exact-active {
+    color: var(--gr-green);
+}
+.nav-link.router-link-exact-active {
+    border-bottom: 2px solid var(--gr-leaf);
 }
 
 /* Hamburger button feedback: hover/press tint, and a filled state while the
@@ -89,8 +101,8 @@ const handleLogout = async () => {
     box-shadow: 0 0 0 0.2rem rgba(33, 37, 41, 0.15);
 }
 .navbar-toggler[aria-expanded='true'] {
-    background-color: #212529;
-    border-color: #212529;
+    background-color: var(--gr-green);
+    border-color: var(--gr-green);
 }
 .navbar-toggler[aria-expanded='true'] .navbar-toggler-icon {
     /* Bootstrap's dark-navbar icon: white lines */

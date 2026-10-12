@@ -1,4 +1,128 @@
+/* Google Fonts: Poppins for headings, Inter for body text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap');
+
+/* GreenRoots colour palette - change these to re-theme the whole site */
+:root {
+  --gr-green: #1f5135;
+  --gr-green-dark: #163b27;
+  --gr-green-soft: #e7f0e9;
+  --gr-leaf: #7cb342;
+  --gr-cream: #faf8f3;
+
+  /* Make Bootstrap links use our green */
+  --bs-link-color-rgb: 31, 81, 53;
+  --bs-link-hover-color-rgb: 22, 59, 39;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--gr-cream);
+  color: #1e2a22;
+}
+
+h1,
+h2,
+h3,
+.navbar-brand {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ---------- Colour helpers ---------- */
+.text-brand {
+  color: var(--gr-green) !important;
+}
+.bg-brand {
+  background-color: var(--gr-green) !important;
+  color: #fff;
+}
+.bg-brand-soft {
+  background-color: var(--gr-green-soft) !important;
+}
+
+/* Small uppercase label above a heading */
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gr-leaf);
+}
+
+/* ---------- Buttons ---------- */
+.btn-brand {
+  background-color: var(--gr-green);
+  border-color: var(--gr-green);
+  color: #fff;
+}
+.btn-brand:hover,
+.btn-brand:focus,
+.btn-brand:disabled {
+  background-color: var(--gr-green-dark);
+  border-color: var(--gr-green-dark);
+  color: #fff;
+}
+.btn-outline-brand {
+  border-color: var(--gr-green);
+  color: var(--gr-green);
+}
+.btn-outline-brand:hover {
+  background-color: var(--gr-green);
+  color: #fff;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+.card-img-top {
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  height: 200px;
+  object-fit: cover;
+}
+/* Lift a card a little when the mouse is over it */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Round icon used on stat cards and feature lists */
+.icon-circle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background-color: var(--gr-green-soft);
+  flex-shrink: 0;
+}
+
+/* ---------- Page banner (green strip at the top of inner pages) ---------- */
+.page-banner {
+  background: linear-gradient(135deg, var(--gr-green) 0%, #2f7a4f 100%);
+  color: #fff;
+  padding: 3rem 0;
+}
+.page-banner p {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ---------- Forms ---------- */
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--gr-leaf);
+  box-shadow: 0 0 0 0.2rem rgba(124, 179, 66, 0.25);
+}
+.form-check-input:checked {
+  background-color: var(--gr-green);
+  border-color: var(--gr-green);
 }
