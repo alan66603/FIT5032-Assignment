@@ -49,6 +49,9 @@ const handleLogout = async () => {
                     <li class="nav-item" v-if="currentUser && DASHBOARD_PATHS[userRole]">
                         <router-link class="nav-link" :to="DASHBOARD_PATHS[userRole]">Dashboard</router-link>
                     </li>
+                    <li class="nav-item" v-if="userRole === 'admin'">
+                        <router-link class="nav-link" to="/dashboard/admin/users">Users</router-link>
+                    </li>
                     <li class="nav-item" v-if="currentUser">
                         <router-link class="nav-link" to="/email">Email</router-link>
                     </li>

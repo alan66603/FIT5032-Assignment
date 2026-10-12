@@ -37,6 +37,9 @@ const quickLinks = [
         {{ currentUser?.email }}
         <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
       </p>
+      <router-link to="/dashboard/admin/users" class="btn btn-light rounded-pill px-4 mt-3">
+        Manage users
+      </router-link>
     </div>
   </section>
 
