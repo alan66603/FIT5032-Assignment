@@ -13,6 +13,9 @@ const app = createApp(App)
 app.use(PrimeVue, {
   theme: {
     preset: Aura,
+    // Always use the light theme. By default PrimeVue follows the computer's
+    // dark mode, which made the tables dark while the rest of the site is light.
+    options: { darkModeSelector: false },
   },
 })
 app.use(router)
