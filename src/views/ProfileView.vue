@@ -2,9 +2,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { collection, query, where, getDocs, doc, onSnapshot } from 'firebase/firestore'
 // Storage's ref() would clash with Vue's ref(), so rename it.
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ref as storageRef, uploadBytes } from 'firebase/storage'
 import { db, storage } from '@/firebase/init'
-import { currentUser, userRole } from '@/auth'
+import { currentUser, userRole, avatarUrl, loadAvatar } from '@/auth'
+import defaultAvatar from '@/assets/default-avatar.svg'
 import { grants } from '@/data/grants'
 
 const myRatings = ref([])
@@ -44,7 +45,7 @@ onMounted(async () => {
 // The page uploads the original picture to Storage. The makeAvatarThumbnail
 // Cloud Function then makes a 200x200 thumb.jpg and updates
 // users/{uid}.avatarUpdatedAt, which we listen to with onSnapshot.
-const avatarUrl = ref(null)
+// avatarUrl lives in auth.js so the navbar updates at the same time.
 const avatarFile = ref(null)
 const isUploading = ref(false)
 const avatarMessage = ref(null)
@@ -53,16 +54,6 @@ let unsubscribeUser = null
 
 const onAvatarChange = (event) => {
   avatarFile.value = event.target.files[0] ?? null
-}
-
-const loadAvatar = async (updatedAt) => {
-  try {
-    const url = await getDownloadURL(storageRef(storage, `avatars/${currentUser.value.uid}/thumb.jpg`))
-    // Add the time so the browser shows the new picture instead of a cached one.
-    avatarUrl.value = `${url}&t=${updatedAt}`
-  } catch (error) {
-    console.error('Error loading profile picture:', error)
-  }
 }
 
 const uploadAvatar = async () => {
@@ -99,7 +90,7 @@ onMounted(() => {
   unsubscribeUser = onSnapshot(doc(db, 'users', currentUser.value.uid), (snapshot) => {
     const updatedAt = snapshot.data()?.avatarUpdatedAt
     if (updatedAt) {
-      loadAvatar(updatedAt)
+      loadAvatar(currentUser.value.uid, updatedAt)
       if (avatarMessage.value) avatarMessage.value = 'Your new profile picture is ready.'
     }
   })
@@ -123,22 +114,15 @@ onUnmounted(() => {
 
             <!-- Profile picture -->
             <div class="d-flex align-items-center gap-3 mb-4">
+              <!-- Falls back to the grey default picture until a thumbnail exists. -->
               <img
-                v-if="avatarUrl"
-                :src="avatarUrl"
-                alt="Your profile picture"
+                :src="avatarUrl || defaultAvatar"
+                :alt="avatarUrl ? 'Your profile picture' : 'No profile picture yet'"
                 class="rounded-circle border"
                 width="96"
                 height="96"
+                style="object-fit: cover"
               />
-              <div
-                v-else
-                class="rounded-circle border bg-light d-flex align-items-center justify-content-center text-muted"
-                style="width: 96px; height: 96px"
-                aria-hidden="true"
-              >
-                No photo
-              </div>
 
               <div class="flex-grow-1">
                 <label for="avatar-file" class="form-label small mb-1">Profile picture (max 5 MB)</label>
