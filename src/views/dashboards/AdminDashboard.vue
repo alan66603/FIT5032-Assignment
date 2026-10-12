@@ -1,17 +1,18 @@
 <script setup>
 import { computed } from 'vue'
 import { currentUser, userRole } from '@/auth'
-import { grants } from '@/data/grants'
+// grants is a computed list that includes status changes made by admins.
+import { grants } from '@/grantsStore'
 
-// Grant numbers come from grants.js; user numbers are demo values.
+// Grant numbers come from the grant list; user numbers are demo values.
 const stats = computed(() => [
   { icon: '👤', value: 128, label: 'registered users' },
-  { icon: '📄', value: grants.length, label: 'grants' },
-  { icon: '⏳', value: grants.filter((grant) => grant.status === 'In Review').length, label: 'awaiting review' },
-  { icon: '💵', value: '$' + grants.reduce((sum, grant) => sum + grant.amount, 0).toLocaleString(), label: 'requested' },
+  { icon: '📄', value: grants.value.length, label: 'grants' },
+  { icon: '⏳', value: grants.value.filter((grant) => grant.status === 'In Review').length, label: 'awaiting review' },
+  { icon: '💵', value: '$' + grants.value.reduce((sum, grant) => sum + grant.amount, 0).toLocaleString(), label: 'requested' },
 ])
 
-const pendingGrants = computed(() => grants.filter((grant) => grant.status === 'In Review'))
+const pendingGrants = computed(() => grants.value.filter((grant) => grant.status === 'In Review'))
 
 // ---- Demo data (not stored in Firestore yet) ----
 const recentUsers = [

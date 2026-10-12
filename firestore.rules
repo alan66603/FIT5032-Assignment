@@ -63,6 +63,17 @@ service cloud.firestore {
       allow delete: if isOwner(resource.data.uid);
     }
 
+    // ---- grantStatuses ---------------------------------------------------
+    // grantStatuses/{grantId}  { status, updatedAt, updatedBy }
+    // Everyone sees the current status; only admins may change it.
+    match /grantStatuses/{grantId} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['status', 'updatedAt', 'updatedBy'])
+        && request.resource.data.status in ['Approved', 'In Review', 'Declined']
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+
     // Everything else is denied by default.
   }
 }

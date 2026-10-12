@@ -1,19 +1,20 @@
 <script setup>
 import { computed } from 'vue'
-import { grants } from '@/data/grants'
+// grants is a computed list that includes status changes made by admins.
+import { grants } from '@/grantsStore'
 import { currentUser, userRole, DASHBOARD_PATHS } from '@/auth'
 
 // Headline numbers derived from the grant list, same computed() pattern as
 // the filtering on the Grants page.
 const stats = computed(() => ({
-  total: grants.length,
-  funding: grants.reduce((sum, grant) => sum + grant.amount, 0),
-  approved: grants.filter((grant) => grant.status === 'Approved').length,
-  suburbs: new Set(grants.map((grant) => grant.suburb)).size,
+  total: grants.value.length,
+  funding: grants.value.reduce((sum, grant) => sum + grant.amount, 0),
+  approved: grants.value.filter((grant) => grant.status === 'Approved').length,
+  suburbs: new Set(grants.value.map((grant) => grant.suburb)).size,
 }))
 
 // Approved grants shown as photo cards in "Featured projects".
-const featuredGrants = computed(() => grants.filter((grant) => grant.status === 'Approved'))
+const featuredGrants = computed(() => grants.value.filter((grant) => grant.status === 'Approved'))
 
 const dashboardPath = computed(() => DASHBOARD_PATHS[userRole.value] ?? '/')
 
