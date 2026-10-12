@@ -7,8 +7,8 @@ import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import { FilterMatchMode } from '@primevue/core/api';
 import { db } from '@/firebase/init';
-import { grants } from '@/data/grants';
-import { currentUser } from '@/auth';
+import { grants, GRANT_STATUSES, updateGrantStatus } from '@/grantsStore';
+import { currentUser, userRole } from '@/auth';
 import StarRating from '@/components/StarRating.vue';
 
 // DataTable filters (BR D.3): one search box for every column ("global"),
@@ -18,9 +18,32 @@ const filters = ref({
   project: { value: null, matchMode: FilterMatchMode.CONTAINS },
   suburb: { value: null, matchMode: FilterMatchMode.CONTAINS },
   status: { value: null, matchMode: FilterMatchMode.EQUALS },
+  averageRating: { value: null, matchMode: FilterMatchMode.GREATER_THAN_OR_EQUAL_TO },
 })
 
-const statuses = ['Approved', 'In Review', 'Declined']
+const statuses = GRANT_STATUSES
+
+// Options for the rating filter: show grants rated at least N stars on average.
+const ratingOptions = [
+  { label: '4★ and up', value: 4 },
+  { label: '3★ and up', value: 3 },
+  { label: '2★ and up', value: 2 },
+  { label: '1★ and up', value: 1 },
+]
+
+// --- Admins can change a grant's status (saved in Firestore grantStatuses) ---
+const isAdmin = computed(() => userRole.value === 'admin')
+const statusError = ref(null)
+
+const changeStatus = async (grantId, status) => {
+  statusError.value = null
+  try {
+    await updateGrantStatus(grantId, status)
+  } catch (error) {
+    console.error('Error changing status:', error)
+    statusError.value = 'Could not change the status. Please try again.'
+  }
+}
 
 /**
  * grants.js stores ISO dates (YYYY-MM-DD) so they sort correctly; display
@@ -80,6 +103,16 @@ const myRatings = computed(() => {
   return mine
 })
 
+// The rows for the table: each grant plus its average rating, so the Rating
+// column can be sorted and filtered like any other column.
+// Grants with no ratings get 0, which puts them last when sorting by rating.
+const grantRows = computed(() =>
+  grants.value.map((grant) => ({
+    ...grant,
+    averageRating: ratingStats.value[grant.id]?.average ?? 0,
+  })),
+)
+
 // Document ID = grantId_uid so each user has one rating per grant and
 // rating again overwrites instead of adding a duplicate.
 const rateGrant = async (grantId, score) => {
@@ -111,11 +144,13 @@ const rateGrant = async (grantId, score) => {
     </section>
 
     <div class="container py-5">
+        <div v-if="statusError" class="alert alert-danger" role="alert">{{ statusError }}</div>
+
         <!-- PrimeVue DataTable (BR D.3): sort, global search, search by column, 10 rows per page -->
         <div class="card p-3">
             <DataTable
                 v-model:filters="filters"
-                :value="grants"
+                :value="grantRows"
                 dataKey="id"
                 paginator
                 :rows="10"
@@ -184,7 +219,17 @@ const rateGrant = async (grantId, score) => {
 
                 <Column field="status" header="Status" sortable :showFilterMenu="false">
                     <template #body="{ data }">
-                        <span class="badge rounded-pill" :class="statusBadgeClass(data.status)">{{ data.status }}</span>
+                        <!-- Admins get a dropdown to change the status; everyone else sees a badge. -->
+                        <select
+                            v-if="isAdmin"
+                            class="form-select form-select-sm"
+                            :value="data.status"
+                            :aria-label="`Status of ${data.project}`"
+                            @change="changeStatus(data.id, $event.target.value)"
+                        >
+                            <option v-for="status in statuses" :key="status" :value="status">{{ status }}</option>
+                        </select>
+                        <span v-else class="badge rounded-pill" :class="statusBadgeClass(data.status)">{{ data.status }}</span>
                     </template>
                     <template #filter="{ filterModel, filterCallback }">
                         <Select
@@ -204,7 +249,20 @@ const rateGrant = async (grantId, score) => {
                     <template #body="{ data }">{{ formatDate(data.date) }}</template>
                 </Column>
 
-                <Column header="Rating">
+                <Column field="averageRating" header="Rating" sortable :showFilterMenu="false">
+                    <template #filter="{ filterModel, filterCallback }">
+                        <Select
+                            v-model="filterModel.value"
+                            @change="filterCallback()"
+                            :options="ratingOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            placeholder="Any"
+                            showClear
+                            aria-label="Filter by rating"
+                            size="small"
+                        />
+                    </template>
                     <template #body="{ data }">
                         <StarRating
                             :value="myRatings[data.id] ?? 0"
