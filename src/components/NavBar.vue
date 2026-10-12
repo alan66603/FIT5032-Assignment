@@ -2,7 +2,8 @@
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'vue-router';
 import { auth } from '@/firebase/init';
-import { currentUser, userRole, DASHBOARD_PATHS } from '@/auth';
+import { currentUser, userRole, avatarUrl, DASHBOARD_PATHS } from '@/auth';
+import defaultAvatar from '@/assets/default-avatar.svg';
 
 const router = useRouter()
 
@@ -49,9 +50,6 @@ const handleLogout = async () => {
                         <router-link class="nav-link" :to="DASHBOARD_PATHS[userRole]">Dashboard</router-link>
                     </li>
                     <li class="nav-item" v-if="currentUser">
-                        <router-link class="nav-link" to="/profile">Profile</router-link>
-                    </li>
-                    <li class="nav-item" v-if="currentUser">
                         <router-link class="nav-link" to="/email">Email</router-link>
                     </li>
                     <li class="nav-item" v-if="!currentUser">
@@ -59,6 +57,19 @@ const handleLogout = async () => {
                     </li>
                     <li class="nav-item" v-else>
                         <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="handleLogout">Log Out</button>
+                    </li>
+                    <!-- Profile picture in the top-right corner; grey default until the user uploads one. -->
+                    <li class="nav-item" v-if="currentUser">
+                        <router-link class="nav-link d-flex align-items-center" to="/profile" aria-label="My profile">
+                            <img
+                                :src="avatarUrl || defaultAvatar"
+                                alt=""
+                                class="rounded-circle border avatar"
+                                width="36"
+                                height="36"
+                            />
+                            <span class="ms-2 d-lg-none">Profile</span>
+                        </router-link>
                     </li>
                 </ul>
             </div>
@@ -69,6 +80,16 @@ const handleLogout = async () => {
 <style scoped>
 .brand-text {
     letter-spacing: 0.08em;
+}
+
+/* Navbar profile picture: crop to fill the circle, highlight on hover. */
+.avatar {
+    object-fit: cover;
+    transition: box-shadow 0.15s ease;
+}
+.nav-link:hover .avatar,
+.nav-link.router-link-exact-active .avatar {
+    box-shadow: 0 0 0 2px var(--gr-leaf);
 }
 
 /* Vue Router adds this class to the link of the page we are on */
