@@ -9,7 +9,6 @@ import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
 import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
 import CorporateDashboard from "@/views/dashboards/CorporateDashboard.vue";
 import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
-import ManageUsersView from "@/views/dashboards/ManageUsersView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import SendEmailView from "@/views/SendEmailView.vue";
 
@@ -72,12 +71,6 @@ const routes = [
     path: "/dashboard/admin",
     name: "AdminDashboard",
     component: AdminDashboard,
-    meta: { requiresAuth: true, allowedRoles: ["admin"] },
-  },
-  {
-    path: "/dashboard/admin/users",
-    name: "ManageUsers",
-    component: ManageUsersView,
     meta: { requiresAuth: true, allowedRoles: ["admin"] },
   },
 ];

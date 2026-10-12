@@ -1,26 +1,24 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { currentUser, userRole } from '@/auth'
 // grants is a computed list that includes status changes made by admins.
 import { grants } from '@/grantsStore'
+import ManageUsers from '@/components/ManageUsers.vue'
 
-// Grant numbers come from the grant list; user numbers are demo values.
+// The real number of accounts, sent up by the Manage users section once it loads.
+const userCount = ref(null)
+const onUsersLoaded = (users) => {
+  userCount.value = users.length
+}
+
 const stats = computed(() => [
-  { icon: '👤', value: 128, label: 'registered users' },
+  { icon: '👤', value: userCount.value ?? '…', label: 'registered users' },
   { icon: '📄', value: grants.value.length, label: 'grants' },
   { icon: '⏳', value: grants.value.filter((grant) => grant.status === 'In Review').length, label: 'awaiting review' },
   { icon: '💵', value: '$' + grants.value.reduce((sum, grant) => sum + grant.amount, 0).toLocaleString(), label: 'requested' },
 ])
 
 const pendingGrants = computed(() => grants.value.filter((grant) => grant.status === 'In Review'))
-
-// ---- Demo data (not stored in Firestore yet) ----
-const recentUsers = [
-  { email: 'priya.n@example.com', role: 'volunteer', joined: '11/10/2026' },
-  { email: 'csr@acmeenergy.com.au', role: 'corporate', joined: '09/10/2026' },
-  { email: 'liam.k@example.com', role: 'volunteer', joined: '07/10/2026' },
-  { email: 'team@brightbank.com.au', role: 'corporate', joined: '02/10/2026' },
-]
 
 const quickLinks = [
   { icon: '📧', text: 'Send an email', to: '/email' },
@@ -38,9 +36,6 @@ const quickLinks = [
         {{ currentUser?.email }}
         <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
       </p>
-      <router-link to="/dashboard/admin/users" class="btn btn-light rounded-pill px-4 mt-3">
-        Manage users
-      </router-link>
     </div>
   </section>
 
@@ -95,33 +90,9 @@ const quickLinks = [
         </div>
       </div>
 
-      <!-- Recent sign-ups -->
+      <!-- Manage users: list, add and edit accounts (admin Cloud Functions) -->
       <div class="col-12">
-        <div class="card overflow-hidden">
-          <div class="p-4 pb-2">
-            <h2 class="h5 fw-bold mb-0">Recent sign-ups</h2>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4">Email</th>
-                  <th>Role</th>
-                  <th>Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="user in recentUsers" :key="user.email">
-                  <td class="ps-4">{{ user.email }}</td>
-                  <td>
-                    <span class="badge rounded-pill bg-brand-soft text-brand text-capitalize">{{ user.role }}</span>
-                  </td>
-                  <td>{{ user.joined }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ManageUsers @users-loaded="onUsersLoaded" />
       </div>
     </div>
   </div>

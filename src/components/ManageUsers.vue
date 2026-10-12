@@ -16,6 +16,9 @@ const FUNCTIONS_URL = 'https://us-central1-fit5032-ass1-16223.cloudfunctions.net
 
 const roles = ['volunteer', 'corporate', 'admin']
 
+// Tell the Admin dashboard the real user list so it can show the user count.
+const emit = defineEmits(['users-loaded'])
+
 const users = ref([])
 const isLoading = ref(true)
 const pageError = ref(null)
@@ -49,6 +52,7 @@ const loadUsers = async () => {
       createdAt: new Date(user.createdAt),
       lastSignIn: user.lastSignIn ? new Date(user.lastSignIn) : null,
     }))
+    emit('users-loaded', users.value)
   } catch (error) {
     console.error('Error loading users:', error)
     pageError.value = error.response?.data?.error ?? 'Could not load users.'
@@ -142,11 +146,12 @@ const saveUser = async () => {
 </script>
 
 <template>
-  <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <!-- Manage Users section of the Admin dashboard -->
+  <div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
       <div>
-        <h1 class="fw-bold mb-1">Manage Users</h1>
-        <p class="text-muted mb-0">Add accounts, change roles, reset passwords or disable accounts.</p>
+        <h2 class="h5 fw-bold mb-1">Manage users</h2>
+        <p class="small text-muted mb-0">Add accounts, change roles, reset passwords or disable accounts.</p>
       </div>
       <button type="button" class="btn btn-brand rounded-pill px-4" @click="openAddDialog">+ Add user</button>
     </div>
@@ -155,7 +160,7 @@ const saveUser = async () => {
     <div v-if="successMessage" class="alert alert-success" role="status">{{ successMessage }}</div>
 
     <!-- PrimeVue DataTable: sort, global search, search by column, 10 rows per page -->
-    <div class="card p-3">
+    <div>
       <DataTable
         v-model:filters="filters"
         :value="users"
