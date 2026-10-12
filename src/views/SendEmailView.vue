@@ -72,43 +72,46 @@ const sendEmail = async () => {
 </script>
 
 <template>
-  <div class="container py-5" style="max-width: 600px">
-    <h1>Send Email</h1>
+  <div class="container py-5" style="max-width: 640px">
+    <div class="card p-4 p-md-5">
+      <h1 class="h3 fw-bold mb-1">📧 Send Email</h1>
+      <p class="text-muted mb-4">Emails are sent through our Cloud Function with SendGrid.</p>
 
-    <form @submit.prevent="sendEmail" novalidate>
-      <div class="mb-3">
-        <label for="email-to" class="form-label">To</label>
-        <!-- Only admins can change the recipient; others email themselves. -->
-        <input id="email-to" v-model="to" type="email" class="form-control" :readonly="userRole !== 'admin'" />
-      </div>
+      <form @submit.prevent="sendEmail" novalidate>
+        <div class="mb-3">
+          <label for="email-to" class="form-label">To</label>
+          <!-- Only admins can change the recipient; others email themselves. -->
+          <input id="email-to" v-model="to" type="email" class="form-control" :readonly="userRole !== 'admin'" />
+        </div>
 
-      <div class="mb-3">
-        <label for="email-subject" class="form-label">Subject</label>
-        <input id="email-subject" v-model="subject" type="text" class="form-control" />
-      </div>
+        <div class="mb-3">
+          <label for="email-subject" class="form-label">Subject</label>
+          <input id="email-subject" v-model="subject" type="text" class="form-control" />
+        </div>
 
-      <div class="mb-3">
-        <label for="email-message" class="form-label">Message</label>
-        <textarea id="email-message" v-model="message" class="form-control" rows="6"></textarea>
-      </div>
+        <div class="mb-3">
+          <label for="email-message" class="form-label">Message</label>
+          <textarea id="email-message" v-model="message" class="form-control" rows="6"></textarea>
+        </div>
 
-      <div class="mb-3">
-        <label for="email-attachment" class="form-label">Attachment (optional, max 5 MB)</label>
-        <input
-          id="email-attachment"
-          type="file"
-          class="form-control"
-          accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
-          @change="onFileChange"
-        />
-      </div>
+        <div class="mb-3">
+          <label for="email-attachment" class="form-label">Attachment (optional, max 5 MB)</label>
+          <input
+            id="email-attachment"
+            type="file"
+            class="form-control"
+            accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
+            @change="onFileChange"
+          />
+        </div>
 
-      <div v-if="errorMessage" class="alert alert-danger py-2" role="alert">{{ errorMessage }}</div>
-      <div v-if="successMessage" class="alert alert-success py-2" role="status">{{ successMessage }}</div>
+        <div v-if="errorMessage" class="alert alert-danger py-2" role="alert">{{ errorMessage }}</div>
+        <div v-if="successMessage" class="alert alert-success py-2" role="status">{{ successMessage }}</div>
 
-      <button type="submit" class="btn btn-dark rounded-pill px-4" :disabled="isSending">
-        {{ isSending ? 'Sending…' : 'Send' }}
-      </button>
-    </form>
+        <button type="submit" class="btn btn-brand rounded-pill px-4" :disabled="isSending">
+          {{ isSending ? 'Sending…' : 'Send' }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>

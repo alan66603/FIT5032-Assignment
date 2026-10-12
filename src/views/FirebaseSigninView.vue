@@ -82,47 +82,69 @@ const signin = async () => {
 </script>
 
 <template>
-  <div class="container py-5" style="max-width: 400px">
-    <h1>Sign in</h1>
+  <div class="container py-5">
+    <div class="card overflow-hidden mx-auto auth-card">
+      <div class="row g-0">
+        <!-- Photo side, hidden on small screens -->
+        <div class="col-lg-6 d-none d-lg-block auth-image"></div>
 
-    <form @submit.prevent="signin" novalidate>
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input
-          v-model="email"
-          type="email"
-          class="form-control"
-          :class="{ 'is-invalid': errors.email }"
-          @blur="validateEmail(true)"
-          @input="validateEmail(false)"
-          placeholder="priya.n@example.com"
-        />
-        <div class="invalid-feedback">{{ errors.email }}</div>
+        <div class="col-lg-6 p-4 p-md-5">
+          <h1 class="h3 fw-bold mb-1">Welcome back</h1>
+          <p class="text-muted mb-4">Sign in to rate grants and see your dashboard.</p>
+
+          <form @submit.prevent="signin" novalidate>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input
+                v-model="email"
+                type="email"
+                class="form-control"
+                :class="{ 'is-invalid': errors.email }"
+                @blur="validateEmail(true)"
+                @input="validateEmail(false)"
+                placeholder="priya.n@example.com"
+              />
+              <div class="invalid-feedback">{{ errors.email }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input
+                v-model="password"
+                type="password"
+                class="form-control"
+                :class="{ 'is-invalid': errors.password }"
+                @blur="validatePassword(true)"
+                @input="validatePassword(false)"
+                placeholder="••••••••"
+              />
+              <div class="invalid-feedback">{{ errors.password }}</div>
+            </div>
+
+            <div v-if="loginError" class="alert alert-danger py-2" role="alert">{{ loginError }}</div>
+
+            <button type="submit" class="btn btn-brand w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Signing in…' : 'Sign in' }}
+            </button>
+
+            <p class="text-center small text-muted">
+              New here? <router-link to="/FireRegister">Register as a Volunteer or Corporate Partner</router-link>
+            </p>
+          </form>
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input
-          v-model="password"
-          type="password"
-          class="form-control"
-          :class="{ 'is-invalid': errors.password }"
-          @blur="validatePassword(true)"
-          @input="validatePassword(false)"
-          placeholder="••••••••"
-        />
-        <div class="invalid-feedback">{{ errors.password }}</div>
-      </div>
-
-      <div v-if="loginError" class="alert alert-danger py-2" role="alert">{{ loginError }}</div>
-
-      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Signing in…' : 'Sign in' }}
-      </button>
-
-      <p class="text-center small text-muted">
-        New here? <router-link to="/FireRegister">Register as a Volunteer or Corporate Partner</router-link>
-      </p>
-    </form>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.auth-card {
+  max-width: 900px;
+}
+.auth-image {
+  background-image: url('/images/auth.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100%;
+}
+</style>

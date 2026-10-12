@@ -124,78 +124,100 @@ const register = async () => {
 </script>
 
 <template>
-  <div class="container py-5" style="max-width: 400px">
-    <h1>Create an Account</h1>
+  <div class="container py-5">
+    <div class="card overflow-hidden mx-auto auth-card">
+      <div class="row g-0">
+        <!-- Photo side, hidden on small screens -->
+        <div class="col-lg-6 d-none d-lg-block auth-image"></div>
 
-    <form @submit.prevent="register" novalidate>
-      <div class="mb-3">
-        <label class="form-label">Email</label>
-        <input
-          v-model="email"
-          type="email"
-          class="form-control"
-          :class="{ 'is-invalid': errors.email }"
-          @blur="validateEmail(true)"
-          @input="validateEmail(false)"
-          placeholder="priya.n@example.com"
-        />
-        <div class="invalid-feedback">{{ errors.email }}</div>
+        <div class="col-lg-6 p-4 p-md-5">
+          <h1 class="h3 fw-bold mb-1">Create an account</h1>
+          <p class="text-muted mb-4">Join as a volunteer or corporate partner.</p>
+
+          <form @submit.prevent="register" novalidate>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input
+                v-model="email"
+                type="email"
+                class="form-control"
+                :class="{ 'is-invalid': errors.email }"
+                @blur="validateEmail(true)"
+                @input="validateEmail(false)"
+                placeholder="priya.n@example.com"
+              />
+              <div class="invalid-feedback">{{ errors.email }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input
+                v-model="password"
+                type="password"
+                class="form-control"
+                :class="{ 'is-invalid': errors.password }"
+                @blur="validatePassword(true)"
+                @input="validatePassword(false)"
+                placeholder="At least 6 characters"
+              />
+              <div class="invalid-feedback">{{ errors.password }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              <input
+                v-model="confirmPassword"
+                type="password"
+                class="form-control"
+                :class="{ 'is-invalid': errors.confirmPassword }"
+                @blur="validateConfirmPassword(true)"
+                @input="validateConfirmPassword(false)"
+                placeholder="Re-enter your password"
+              />
+              <div class="invalid-feedback">{{ errors.confirmPassword }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">I am registering as</label>
+              <select
+                v-model="role"
+                class="form-select"
+                :class="{ 'is-invalid': errors.role }"
+                @blur="validateRole(true)"
+                @change="validateRole(false)"
+              >
+                <option value="" disabled>Select your role</option>
+                <option v-for="option in roles" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <div class="invalid-feedback">{{ errors.role }}</div>
+            </div>
+
+            <div v-if="registerError" class="alert alert-danger py-2" role="alert">{{ registerError }}</div>
+
+            <button type="submit" class="btn btn-brand w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
+              {{ isSubmitting ? 'Registering…' : 'Register' }}
+            </button>
+
+            <p class="text-center small text-muted">
+              Already have an account? <router-link to="/FireLogin">Sign in</router-link>
+            </p>
+          </form>
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input
-          v-model="password"
-          type="password"
-          class="form-control"
-          :class="{ 'is-invalid': errors.password }"
-          @blur="validatePassword(true)"
-          @input="validatePassword(false)"
-          placeholder="At least 6 characters"
-        />
-        <div class="invalid-feedback">{{ errors.password }}</div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Confirm Password</label>
-        <input
-          v-model="confirmPassword"
-          type="password"
-          class="form-control"
-          :class="{ 'is-invalid': errors.confirmPassword }"
-          @blur="validateConfirmPassword(true)"
-          @input="validateConfirmPassword(false)"
-          placeholder="Re-enter your password"
-        />
-        <div class="invalid-feedback">{{ errors.confirmPassword }}</div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">I am registering as</label>
-        <select
-          v-model="role"
-          class="form-select"
-          :class="{ 'is-invalid': errors.role }"
-          @blur="validateRole(true)"
-          @change="validateRole(false)"
-        >
-          <option value="" disabled>Select your role</option>
-          <option v-for="option in roles" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-        <div class="invalid-feedback">{{ errors.role }}</div>
-      </div>
-
-      <div v-if="registerError" class="alert alert-danger py-2" role="alert">{{ registerError }}</div>
-
-      <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Registering…' : 'Register' }}
-      </button>
-
-      <p class="text-center small text-muted">
-        Already have an account? <router-link to="/FireLogin">Sign in</router-link>
-      </p>
-    </form>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.auth-card {
+  max-width: 900px;
+}
+.auth-image {
+  background-image: url('/images/auth.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100%;
+}
+</style>

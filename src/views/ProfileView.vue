@@ -55,7 +55,7 @@ onMounted(async () => {
 
               <dt class="col-sm-4">Role</dt>
               <dd class="col-sm-8">
-                <span class="badge text-bg-dark text-capitalize">{{ userRole ?? 'none' }}</span>
+                <span class="badge bg-brand text-capitalize">{{ userRole ?? 'none' }}</span>
               </dd>
 
               <dt class="col-sm-4">Member since</dt>
@@ -78,7 +78,7 @@ onMounted(async () => {
 
             <p v-else-if="ratedGrants.length === 0" class="text-muted mb-0">
               You haven't rated any grants yet.
-              <router-link to="/grants" class="text-dark">Browse grants</router-link>
+              <router-link to="/grants" class="text-brand">Browse grants</router-link>
             </p>
 
             <table v-else class="table table-sm align-middle mb-0">
