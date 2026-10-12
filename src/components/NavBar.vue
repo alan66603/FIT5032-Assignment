@@ -58,12 +58,16 @@ const handleLogout = async () => {
                     <li class="nav-item" v-if="!currentUser">
                         <router-link class="btn btn-brand rounded-pill px-4" to="/FireLogin">Log In</router-link>
                     </li>
-                    <li class="nav-item" v-else>
-                        <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="handleLogout">Log Out</button>
-                    </li>
-                    <!-- Profile picture in the top-right corner; grey default until the user uploads one. -->
-                    <li class="nav-item" v-if="currentUser">
-                        <router-link class="nav-link d-flex align-items-center" to="/profile" aria-label="My profile">
+                    <!-- Profile picture in the top-right corner (grey default until the user uploads one).
+                         Clicking it opens a small Bootstrap dropdown with Profile and Log Out. -->
+                    <li class="nav-item dropdown" v-else>
+                        <button
+                            type="button"
+                            class="nav-link btn btn-link d-flex align-items-center dropdown-toggle"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                            aria-label="Account menu"
+                        >
                             <img
                                 :src="avatarUrl || defaultAvatar"
                                 alt=""
@@ -71,8 +75,16 @@ const handleLogout = async () => {
                                 width="36"
                                 height="36"
                             />
-                            <span class="ms-2 d-lg-none">Profile</span>
-                        </router-link>
+                            <span class="ms-2 d-lg-none">Account</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li class="dropdown-item-text small text-muted">{{ currentUser.email }}</li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><router-link class="dropdown-item" to="/profile">Profile</router-link></li>
+                            <li>
+                                <button type="button" class="dropdown-item" @click="handleLogout">Log Out</button>
+                            </li>
+                        </ul>
                     </li>
                 </ul>
             </div>
