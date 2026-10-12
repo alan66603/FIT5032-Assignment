@@ -10,6 +10,7 @@ import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
 import CorporateDashboard from "@/views/dashboards/CorporateDashboard.vue";
 import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
 import ProfileView from "@/views/ProfileView.vue";
+import SendEmailView from "@/views/SendEmailView.vue";
 
 const routes = [
   {
@@ -46,6 +47,12 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: ProfileView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/email",
+    name: "SendEmail",
+    component: SendEmailView,
     meta: { requiresAuth: true },
   },
   {

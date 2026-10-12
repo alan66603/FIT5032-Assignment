@@ -30,7 +30,21 @@ Firebase Console → Project settings → General → Your apps → SDK setup an
 - **Firestore Database** → create a database, then open the **Rules** tab and
   paste the contents of [`firestore.rules`](firestore.rules) → Publish.
 
-### 3. Run
+### 3. Cloud Functions (email)
+
+Requires the Firebase **Blaze** plan. Email is sent through the
+[SendGrid](https://sendgrid.com) email API (`@sendgrid/mail`).
+
+```sh
+cd functions && npm install && cd ..
+cp functions/.env.example functions/.env    # fill in SENDGRID_API_KEY and SENDER_EMAIL
+firebase deploy --only functions
+```
+
+After deploying, copy the function URL from Firebase Console → Functions into
+`SEND_EMAIL_URL` in `src/views/SendEmailView.vue` if it differs.
+
+### 4. Run
 
 ```sh
 npm run dev      # development server with hot reload
