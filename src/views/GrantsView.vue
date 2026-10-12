@@ -1,20 +1,26 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { collection, doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import InputText from 'primevue/inputtext';
+import Select from 'primevue/select';
+import { FilterMatchMode } from '@primevue/core/api';
 import { db } from '@/firebase/init';
 import { grants } from '@/data/grants';
 import { currentUser } from '@/auth';
 import StarRating from '@/components/StarRating.vue';
 
-const searchTerm = ref('')
-
-const filterGrants = computed(() => {
-    return grants.filter((grant) => {
-        const matchesSearch = grant.project.toLowerCase().includes(searchTerm.value.toLowerCase())
-        const matchesStatus = statusFilters[grant.status]
-        return matchesSearch && matchesStatus
-    })
+// DataTable filters (BR D.3): one search box for every column ("global"),
+// plus one box per column so users can search by an individual column.
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  project: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  suburb: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  status: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
+
+const statuses = ['Approved', 'In Review', 'Declined']
 
 /**
  * grants.js stores ISO dates (YYYY-MM-DD) so they sort correctly; display
@@ -32,12 +38,6 @@ function statusBadgeClass(status) {
   if (status === 'Declined') return 'bg-secondary'
   return 'bg-light text-dark'
 }
-
-const statusFilters = reactive({
-  Approved: true,
-  'In Review': true,
-  Declined: true,
-})
 
 // --- Ratings (Firestore `ratings` collection) ---
 
@@ -111,89 +111,116 @@ const rateGrant = async (grantId, score) => {
     </section>
 
     <div class="container py-5">
-        <!-- Search + status filters -->
-        <div class="card p-3 mb-4">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-5">
-                    <input
-                        v-model="searchTerm"
-                        type="text"
-                        class="form-control rounded-pill"
-                        placeholder="🔍 Search by project name"
-                    />
-                </div>
-                <div class="col-md-7">
-                    <div class="form-check form-check-inline" v-for="status in Object.keys(statusFilters)" :key="status">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            :id="'status-' + status"
-                            v-model="statusFilters[status]"
+        <!-- PrimeVue DataTable (BR D.3): sort, global search, search by column, 10 rows per page -->
+        <div class="card p-3">
+            <DataTable
+                v-model:filters="filters"
+                :value="grants"
+                dataKey="id"
+                paginator
+                :rows="10"
+                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} grants"
+                filterDisplay="row"
+                :globalFilterFields="['project', 'suburb', 'status', 'description']"
+                removableSort
+                stripedRows
+            >
+                <template #header>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <InputText
+                            v-model="filters.global.value"
+                            placeholder="🔍 Search all grants"
+                            aria-label="Search all grants"
                         />
-                        <label class="form-check-label" :for="'status-' + status">{{ status }}</label>
+                        <span v-if="!currentUser" class="small text-muted">
+                            <router-link to="/FireLogin">Log in</router-link> to rate a grant.
+                        </span>
                     </div>
-                </div>
-            </div>
-        </div>
+                </template>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <p class="mb-0 fw-semibold">Showing {{ filterGrants.length }} of {{ grants.length }} grants</p>
-            <p v-if="!currentUser" class="small text-muted mb-0">
-                <router-link to="/FireLogin">Log in</router-link> to rate a grant.
-            </p>
-        </div>
+                <template #empty>
+                    <p class="text-center text-muted py-4 mb-0">No grants match your search.</p>
+                </template>
 
-        <div class="card overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">Project</th>
-                            <th>Suburb</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="grant in filterGrants" :key="grant.id">
-                            <td class="ps-3">
-                                <div class="d-flex align-items-center">
-                                    <img :src="grant.image" :alt="grant.project" class="grant-thumb me-3" />
-                                    <div>
-                                        <div class="fw-semibold">{{ grant.project }}</div>
-                                        <div class="small text-muted grant-desc">{{ grant.description }}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ grant.suburb }}</td>
-                            <td class="fw-semibold">${{ grant.amount.toLocaleString() }}</td>
-                            <td>
-                                <span class="badge rounded-pill" :class="statusBadgeClass(grant.status)">{{ grant.status }}</span>
-                            </td>
-                            <td>{{ formatDate(grant.date) }}</td>
-                            <td>
-                                <StarRating
-                                    :value="myRatings[grant.id] ?? 0"
-                                    :disabled="!currentUser"
-                                    @rate="rateGrant(grant.id, $event)"
-                                />
-                                <div class="small text-muted">
-                                    <template v-if="ratingStats[grant.id]">
-                                        {{ ratingStats[grant.id].average.toFixed(1) }} / 5
-                                        ({{ ratingStats[grant.id].count }})
-                                    </template>
-                                    <template v-else>No ratings yet</template>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr v-if="filterGrants.length === 0">
-                            <td colspan="6" class="text-center text-muted py-5">No grants match your search.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <Column field="project" header="Project" sortable :showFilterMenu="false" style="min-width: 20rem">
+                    <template #body="{ data }">
+                        <div class="d-flex align-items-center">
+                            <img :src="data.image" :alt="data.project" class="grant-thumb me-3" />
+                            <div>
+                                <div class="fw-semibold">{{ data.project }}</div>
+                                <div class="small text-muted grant-desc">{{ data.description }}</div>
+                            </div>
+                        </div>
+                    </template>
+                    <template #filter="{ filterModel, filterCallback }">
+                        <InputText
+                            v-model="filterModel.value"
+                            @input="filterCallback()"
+                            placeholder="Search project"
+                            aria-label="Filter by project"
+                            size="small"
+                        />
+                    </template>
+                </Column>
+
+                <Column field="suburb" header="Suburb" sortable :showFilterMenu="false">
+                    <template #filter="{ filterModel, filterCallback }">
+                        <InputText
+                            v-model="filterModel.value"
+                            @input="filterCallback()"
+                            placeholder="Search suburb"
+                            aria-label="Filter by suburb"
+                            size="small"
+                        />
+                    </template>
+                </Column>
+
+                <Column field="amount" header="Amount" sortable>
+                    <template #body="{ data }">
+                        <span class="fw-semibold">${{ data.amount.toLocaleString() }}</span>
+                    </template>
+                </Column>
+
+                <Column field="status" header="Status" sortable :showFilterMenu="false">
+                    <template #body="{ data }">
+                        <span class="badge rounded-pill" :class="statusBadgeClass(data.status)">{{ data.status }}</span>
+                    </template>
+                    <template #filter="{ filterModel, filterCallback }">
+                        <Select
+                            v-model="filterModel.value"
+                            @change="filterCallback()"
+                            :options="statuses"
+                            placeholder="All"
+                            showClear
+                            aria-label="Filter by status"
+                            size="small"
+                        />
+                    </template>
+                </Column>
+
+                <!-- ISO dates (YYYY-MM-DD) sort correctly as text; show them as DD/MM/YYYY. -->
+                <Column field="date" header="Date" sortable>
+                    <template #body="{ data }">{{ formatDate(data.date) }}</template>
+                </Column>
+
+                <Column header="Rating">
+                    <template #body="{ data }">
+                        <StarRating
+                            :value="myRatings[data.id] ?? 0"
+                            :disabled="!currentUser"
+                            @rate="rateGrant(data.id, $event)"
+                        />
+                        <div class="small text-muted">
+                            <template v-if="ratingStats[data.id]">
+                                {{ ratingStats[data.id].average.toFixed(1) }} / 5
+                                ({{ ratingStats[data.id].count }})
+                            </template>
+                            <template v-else>No ratings yet</template>
+                        </div>
+                    </template>
+                </Column>
+            </DataTable>
         </div>
     </div>
 </template>
