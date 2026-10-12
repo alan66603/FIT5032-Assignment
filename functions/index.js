@@ -3,9 +3,11 @@
 // This file runs on Node.js, so tell ESLint about the Node.js globals.
 /* global require, exports, process */
 const { onRequest } = require("firebase-functions/v2/https");
+const { onObjectFinalized } = require("firebase-functions/v2/storage");
 const admin = require("firebase-admin");
 const cors = require("cors")({ origin: true });
 const nodemailer = require("nodemailer");
+const sharp = require("sharp");
 
 admin.initializeApp();
 
@@ -73,4 +75,51 @@ exports.sendEmail = onRequest((req, res) => {
       res.status(500).send({ error: "Error sending email" });
     }
   });
+});
+
+// makeAvatarThumbnail (BR E.1): runs automatically whenever a file is uploaded
+// to Firebase Storage. When it is a profile picture, it shrinks it to a
+// 200x200 thumbnail with sharp and saves it next to the original.
+// Based on the "generate thumbnail" sample in firebase/functions-samples
+// (linked in the Week 9 lecture Helpful Links).
+exports.makeAvatarThumbnail = onObjectFinalized(async (event) => {
+  const filePath = event.data.name; // e.g. "avatars/<uid>/original"
+  const contentType = event.data.contentType;
+
+  // Only handle new profile pictures. Our own thumb.jpg does not end with
+  // "/original", so saving it below does not trigger this function again.
+  if (!filePath.startsWith("avatars/") || !filePath.endsWith("/original")) {
+    return;
+  }
+  if (!contentType || !contentType.startsWith("image/")) {
+    console.log("Not an image, skipping:", filePath);
+    return;
+  }
+
+  const uid = filePath.split("/")[1];
+  const bucket = admin.storage().bucket(event.data.bucket);
+
+  try {
+    // 1. Download the original picture.
+    const [original] = await bucket.file(filePath).download();
+
+    // 2. Crop it to a 200x200 square and convert it to JPEG.
+    const thumbnail = await sharp(original).resize(200, 200).jpeg().toBuffer();
+
+    // 3. Save the thumbnail next to the original.
+    await bucket.file(`avatars/${uid}/thumb.jpg`).save(thumbnail, {
+      contentType: "image/jpeg",
+    });
+
+    // 4. Tell the Profile page a new thumbnail is ready.
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .set({ avatarUpdatedAt: Date.now() }, { merge: true });
+
+    console.log("Thumbnail created for", uid);
+  } catch (error) {
+    console.error("Error making thumbnail:", error.message);
+  }
 });
