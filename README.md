@@ -33,11 +33,11 @@ Firebase Console → Project settings → General → Your apps → SDK setup an
 ### 3. Cloud Functions (email)
 
 Requires the Firebase **Blaze** plan. Email is sent through the
-[SendGrid](https://sendgrid.com) email API (`@sendgrid/mail`).
+[Nodemailer](https://nodemailer.com) using a Gmail account and a Google App Password.
 
 ```sh
 cd functions && npm install && cd ..
-cp functions/.env.example functions/.env    # fill in SENDGRID_API_KEY and SENDER_EMAIL
+cp functions/.env.example functions/.env    # fill in GMAIL_USER and GMAIL_APP_PASSWORD
 firebase deploy --only functions
 ```
 

@@ -5,13 +5,22 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const cors = require("cors")({ origin: true });
-const sgMail = require("@sendgrid/mail");
+const nodemailer = require("nodemailer");
 
 admin.initializeApp();
 
-// sendEmail: send one email, with an optional attachment, through the SendGrid email API.
-// SENDGRID_API_KEY and SENDER_EMAIL are read from functions/.env, so the key is
-// never in the browser or on GitHub.
+// Nodemailer (Week 9 lecture, Helpful Links) logs in to our Gmail account and
+// sends through Gmail's own SMTP server. GMAIL_USER and GMAIL_APP_PASSWORD are
+// read from functions/.env, so the password is never in the browser or on GitHub.
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
+
+// sendEmail: send one email, with an optional attachment.
 exports.sendEmail = onRequest((req, res) => {
   cors(req, res, async () => {
     // 1. Only signed-in users may send. The Vue page puts the user's
@@ -42,22 +51,21 @@ exports.sendEmail = onRequest((req, res) => {
         return;
       }
 
-      // 3. Build the email in the format SendGrid expects and send it.
+      // 3. Build the email and send it.
       const email = {
+        from: `"GreenRoots Melbourne" <${process.env.GMAIL_USER}>`,
         to: to,
-        from: { email: process.env.SENDER_EMAIL, name: "GreenRoots Melbourne" },
         subject: subject,
         text: message,
       };
       if (attachment) {
-        // SendGrid takes the file as base64 text, which is what the Vue page sends.
+        // The Vue page sends the file as base64 text, so tell Nodemailer how to decode it.
         email.attachments = [
-          { content: attachment.content, filename: attachment.filename, disposition: "attachment" },
+          { filename: attachment.filename, content: attachment.content, encoding: "base64" },
         ];
       }
 
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-      await sgMail.send(email);
+      await transporter.sendMail(email);
 
       res.status(200).send({ message: "Email sent" });
     } catch (error) {

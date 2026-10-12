@@ -75,7 +75,7 @@ const sendEmail = async () => {
   <div class="container py-5" style="max-width: 640px">
     <div class="card p-4 p-md-5">
       <h1 class="h3 fw-bold mb-1">📧 Send Email</h1>
-      <p class="text-muted mb-4">Emails are sent through our Cloud Function with SendGrid.</p>
+      <p class="text-muted mb-4">Emails are sent through our Cloud Function with Nodemailer.</p>
 
       <form @submit.prevent="sendEmail" novalidate>
         <div class="mb-3">
