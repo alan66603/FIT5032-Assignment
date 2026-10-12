@@ -58,7 +58,10 @@ exports.sendEmail = onRequest((req, res) => {
         from: `"GreenRoots Melbourne" <${process.env.GMAIL_USER}>`,
         to: to,
         subject: subject,
-        text: message,
+        // The message comes from the TinyMCE editor as HTML, so send it as an
+        // HTML email, plus a plain-text copy (tags removed) for simple mail apps.
+        html: message,
+        text: message.replace(/<[^>]*>/g, ""),
       };
       if (attachment) {
         // The Vue page sends the file as base64 text, so tell Nodemailer how to decode it.
