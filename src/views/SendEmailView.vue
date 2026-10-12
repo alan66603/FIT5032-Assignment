@@ -4,6 +4,37 @@ import axios from 'axios'
 import { auth } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
 
+// TinyMCE rich text editor, self-hosted from npm (no API key needed).
+// These imports bundle the editor, its theme, icons, skin and the plugins we use.
+import 'tinymce'
+import 'tinymce/icons/default'
+import 'tinymce/themes/silver'
+import 'tinymce/models/dom'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/autolink'
+import 'tinymce/skins/ui/oxide/skin.js'
+import 'tinymce/skins/ui/oxide/content.js'
+import 'tinymce/skins/content/default/content.js'
+import Editor from '@tinymce/tinymce-vue'
+
+const editorSettings = {
+  height: 300,
+  menubar: false,
+  plugins: 'lists link autolink',
+  toolbar: 'undo redo | bold italic underline | forecolor | bullist numlist | link | removeformat',
+  // Use the skin and content styles bundled above instead of loading files from a URL.
+  skin_url: 'default',
+  content_css: 'default',
+  iframe_aria_text: 'Message',
+  promotion: false,
+  branding: false,
+}
+
+// The editor gives us HTML, e.g. "<p><strong>Hi</strong></p>". Strip the tags to
+// check whether the user actually typed something.
+const hasText = (html) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0
+
 // Copy this URL from Firebase Console > Functions after `firebase deploy`.
 const SEND_EMAIL_URL = 'https://us-central1-fit5032-ass1-16223.cloudfunctions.net/sendEmail'
 
@@ -35,7 +66,7 @@ const sendEmail = async () => {
   errorMessage.value = null
   successMessage.value = null
 
-  if (!to.value || !subject.value || !message.value) {
+  if (!to.value || !subject.value || !hasText(message.value)) {
     errorMessage.value = 'Please fill in the recipient, subject and message.'
     return
   }
@@ -91,7 +122,8 @@ const sendEmail = async () => {
 
         <div class="mb-3">
           <label for="email-message" class="form-label">Message</label>
-          <textarea id="email-message" v-model="message" class="form-control" rows="6"></textarea>
+          <!-- TinyMCE: bold, italic, colours, lists and links. v-model holds the HTML. -->
+          <Editor id="email-message" v-model="message" license-key="gpl" :init="editorSettings" />
         </div>
 
         <div class="mb-3">
