@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
 
 // Your web app's Firebase configuration.
 // Values live in .env (see .env.example) so they are not committed to git.
@@ -21,4 +22,5 @@ initializeApp(firebaseConfig)
 
 export const auth = getAuth()
 export const db = getFirestore()
+export const storage = getStorage()
 export default db
