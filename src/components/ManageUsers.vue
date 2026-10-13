@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -9,6 +10,7 @@ import Dialog from 'primevue/dialog'
 import { FilterMatchMode } from '@primevue/core/api'
 import { auth } from '@/firebase/init'
 import { currentUser } from '@/auth'
+import { bulkRecipients } from '@/emailDraft'
 
 // Our admin Cloud Functions (listUsers, createUser, updateUser).
 // Copy this base URL from Firebase Console > Functions after `firebase deploy`.
@@ -62,6 +64,15 @@ const loadUsers = async () => {
 }
 
 onMounted(loadUsers)
+
+// --- Bulk email: tick users in the table, then email them all (BR F.1) ---
+const router = useRouter()
+const selectedUsers = ref([])
+
+const emailSelected = () => {
+  bulkRecipients.value = selectedUsers.value.map((user) => user.email)
+  router.push('/email')
+}
 
 const formatDateTime = (date) => (date ? date.toLocaleString('en-AU') : '—')
 const isSelf = (user) => user.uid === currentUser.value?.uid
@@ -153,7 +164,17 @@ const saveUser = async () => {
         <h2 class="h5 fw-bold mb-1">Manage users</h2>
         <p class="small text-muted mb-0">Add accounts, change roles, reset passwords or disable accounts.</p>
       </div>
-      <button type="button" class="btn btn-brand rounded-pill px-4" @click="openAddDialog">+ Add user</button>
+      <div class="d-flex gap-2">
+        <button
+          type="button"
+          class="btn btn-outline-brand rounded-pill px-4"
+          :disabled="selectedUsers.length === 0"
+          @click="emailSelected"
+        >
+          ✉️ Email selected ({{ selectedUsers.length }})
+        </button>
+        <button type="button" class="btn btn-brand rounded-pill px-4" @click="openAddDialog">+ Add user</button>
+      </div>
     </div>
 
     <div v-if="pageError" class="alert alert-danger" role="alert">{{ pageError }}</div>
@@ -163,6 +184,7 @@ const saveUser = async () => {
     <div>
       <DataTable
         v-model:filters="filters"
+        v-model:selection="selectedUsers"
         :value="users"
         :loading="isLoading"
         dataKey="uid"
@@ -184,6 +206,9 @@ const saveUser = async () => {
         <template #empty>
           <p class="text-center text-muted py-4 mb-0">No users found.</p>
         </template>
+
+        <!-- Tick boxes for choosing bulk email recipients -->
+        <Column selectionMode="multiple" headerStyle="width: 3rem" />
 
         <Column field="email" header="Email" sortable :showFilterMenu="false" style="min-width: 16rem">
           <template #body="{ data }">

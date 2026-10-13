@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import MultiSelect from 'primevue/multiselect'
 import { auth } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
+import { bulkRecipients } from '@/emailDraft'
 
 // TinyMCE rich text editor, self-hosted from npm (no API key needed).
 // These imports bundle the editor, its theme, icons, skin and the plugins we use.
@@ -35,10 +37,11 @@ const editorSettings = {
 // check whether the user actually typed something.
 const hasText = (html) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0
 
-// Copy this URL from Firebase Console > Functions after `firebase deploy`.
-const SEND_EMAIL_URL = 'https://us-central1-fit5032-ass1-16223.cloudfunctions.net/sendEmail'
+// Our Cloud Functions. Copy the base URL from Firebase Console > Functions after `firebase deploy`.
+const FUNCTIONS_URL = 'https://us-central1-fit5032-ass1-16223.cloudfunctions.net'
 
-const to = ref(currentUser.value?.email ?? '')
+const isAdmin = computed(() => userRole.value === 'admin')
+
 const subject = ref('')
 const message = ref('')
 const file = ref(null)
@@ -46,6 +49,44 @@ const file = ref(null)
 const isSending = ref(false)
 const errorMessage = ref(null)
 const successMessage = ref(null)
+
+// --- Admins: bulk email to chosen users (BR F.1) ---
+// Start with anyone ticked in the Manage users table, then clear that list.
+const recipients = ref([...bulkRecipients.value])
+bulkRecipients.value = []
+
+const allUsers = ref([])
+const recipientOptions = computed(() =>
+  allUsers.value.map((user) => ({ label: `${user.email} (${user.role ?? 'no role'})`, value: user.email })),
+)
+
+// POST to one of our Cloud Functions with the ID token, so it knows who is calling.
+const callFunction = async (name, body) => {
+  const token = await auth.currentUser.getIdToken()
+  const response = await axios.post(`${FUNCTIONS_URL}/${name}`, body, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return response.data
+}
+
+onMounted(async () => {
+  if (!isAdmin.value) return
+  try {
+    const data = await callFunction('listUsers', {})
+    allUsers.value = data.users
+  } catch (error) {
+    console.error('Error loading users:', error)
+    errorMessage.value = 'Could not load the user list.'
+  }
+})
+
+// Quick picks: every user with a role, or everyone.
+const selectRole = (role) => {
+  recipients.value = allUsers.value.filter((user) => user.role === role).map((user) => user.email)
+}
+const selectEveryone = () => {
+  recipients.value = allUsers.value.map((user) => user.email)
+}
 
 const onFileChange = (event) => {
   file.value = event.target.files[0] ?? null
@@ -66,8 +107,12 @@ const sendEmail = async () => {
   errorMessage.value = null
   successMessage.value = null
 
-  if (!to.value || !subject.value || !hasText(message.value)) {
-    errorMessage.value = 'Please fill in the recipient, subject and message.'
+  if (isAdmin.value && recipients.value.length === 0) {
+    errorMessage.value = 'Please choose at least one recipient.'
+    return
+  }
+  if (!subject.value || !hasText(message.value)) {
+    errorMessage.value = 'Please fill in the subject and message.'
     return
   }
   if (file.value && file.value.size > 5 * 1024 * 1024) {
@@ -82,15 +127,26 @@ const sendEmail = async () => {
       attachment = { filename: file.value.name, content: await readFileAsBase64(file.value) }
     }
 
-    // The ID token proves to the Cloud Function who is sending.
-    const token = await auth.currentUser.getIdToken()
-    await axios.post(
-      SEND_EMAIL_URL,
-      { to: to.value, subject: subject.value, message: message.value, attachment },
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
-
-    successMessage.value = `Email sent to ${to.value}.`
+    if (isAdmin.value) {
+      // Admins: one email to every chosen recipient (BCC), through sendBulkEmail.
+      const data = await callFunction('sendBulkEmail', {
+        recipients: recipients.value,
+        subject: subject.value,
+        message: message.value,
+        attachment,
+      })
+      successMessage.value = `Email sent to ${data.sent} ${data.sent === 1 ? 'person' : 'people'}.`
+      recipients.value = []
+    } else {
+      // Everyone else: email yourself, through sendEmail (BR D.2).
+      await callFunction('sendEmail', {
+        to: currentUser.value.email,
+        subject: subject.value,
+        message: message.value,
+        attachment,
+      })
+      successMessage.value = `Email sent to ${currentUser.value.email}.`
+    }
     subject.value = ''
     message.value = ''
   } catch (error) {
@@ -103,16 +159,52 @@ const sendEmail = async () => {
 </script>
 
 <template>
-  <div class="container py-5" style="max-width: 640px">
+  <div class="container py-5" style="max-width: 720px">
     <div class="card p-4 p-md-5">
       <h1 class="h3 fw-bold mb-1">📧 Send Email</h1>
-      <p class="text-muted mb-4">Emails are sent through our Cloud Function with Nodemailer.</p>
+      <p class="text-muted mb-4">
+        {{
+          isAdmin
+            ? 'Email one or many users at once. Recipients are hidden from each other (BCC).'
+            : 'Send yourself an email, with an attachment if you like.'
+        }}
+      </p>
 
       <form @submit.prevent="sendEmail" novalidate>
-        <div class="mb-3">
+        <!-- Admins choose any number of recipients -->
+        <div v-if="isAdmin" class="mb-3">
+          <label id="recipients-label" class="form-label">To</label>
+          <MultiSelect
+            v-model="recipients"
+            :options="recipientOptions"
+            optionLabel="label"
+            optionValue="value"
+            filter
+            display="chip"
+            placeholder="Choose recipients"
+            :maxSelectedLabels="6"
+            class="w-100"
+            ariaLabelledby="recipients-label"
+          />
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" @click="selectRole('volunteer')">
+              All volunteers
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" @click="selectRole('corporate')">
+              All corporate
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-brand rounded-pill" @click="selectEveryone">
+              Everyone
+            </button>
+            <button type="button" class="btn btn-sm btn-light rounded-pill" @click="recipients = []">Clear</button>
+          </div>
+          <div class="form-text">{{ recipients.length }} recipient{{ recipients.length === 1 ? '' : 's' }} selected</div>
+        </div>
+
+        <!-- Everyone else emails themselves -->
+        <div v-else class="mb-3">
           <label for="email-to" class="form-label">To</label>
-          <!-- Only admins can change the recipient; others email themselves. -->
-          <input id="email-to" v-model="to" type="email" class="form-control" :readonly="userRole !== 'admin'" />
+          <input id="email-to" :value="currentUser?.email" type="email" class="form-control" readonly />
         </div>
 
         <div class="mb-3">
@@ -141,7 +233,7 @@ const sendEmail = async () => {
         <div v-if="successMessage" class="alert alert-success py-2" role="status">{{ successMessage }}</div>
 
         <button type="submit" class="btn btn-brand rounded-pill px-4" :disabled="isSending">
-          {{ isSending ? 'Sending…' : 'Send' }}
+          {{ isSending ? 'Sending…' : isAdmin ? `Send to ${recipients.length}` : 'Send' }}
         </button>
       </form>
     </div>
