@@ -7,6 +7,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import Dialog from 'primevue/dialog'
 import { currentUser, userRole } from '@/auth'
 import { events, myBookedEventIds, bookEvent, cancelBooking, createEvent } from '@/eventsStore'
+import { grants } from '@/grantsStore'
 
 // BR F.1: booking planting days with calendar constraints (FullCalendar + Firestore).
 
@@ -16,6 +17,9 @@ const isPast = (event) => event.start <= new Date()
 const isFull = (event) => event.bookedCount >= event.capacity
 const isBooked = (event) => myBookedEventIds.value.has(event.id)
 const spotsLeft = (event) => event.capacity - event.bookedCount
+
+// The grant project an event belongs to (events store its grantId).
+const grantFor = (event) => grants.value.find((grant) => grant.id === event.grantId)
 
 const formatDateTime = (date) =>
   date.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
@@ -103,6 +107,7 @@ const newEventVisible = ref(false)
 const isSaving = ref(false)
 const newEventError = ref(null)
 const emptyForm = (date = '') => ({
+  grantId: null,
   title: '',
   place: '',
   description: '',
@@ -119,9 +124,19 @@ const openNewEvent = (date = '') => {
   newEventVisible.value = true
 }
 
+// Choosing a grant fills in its suburb as the place, if the place is still empty.
+const onGrantChosen = () => {
+  const grant = grants.value.find((g) => g.id === newEvent.value.grantId)
+  if (grant && !newEvent.value.place.trim()) newEvent.value.place = grant.suburb
+}
+
 const saveNewEvent = async () => {
   newEventError.value = null
   const form = newEvent.value
+  if (!form.grantId) {
+    newEventError.value = 'Please choose which grant this planting day is for.'
+    return
+  }
   // "2026-10-25" + "09:00" -> a Date in the browser's local time (Melbourne).
   const start = new Date(`${form.date}T${form.startTime}`)
   const end = new Date(`${form.date}T${form.endTime}`)
@@ -146,6 +161,7 @@ const saveNewEvent = async () => {
   isSaving.value = true
   try {
     await createEvent({
+      grantId: form.grantId,
       title: form.title.trim(),
       place: form.place.trim(),
       description: form.description.trim(),
@@ -199,6 +215,9 @@ const saveNewEvent = async () => {
       <div v-for="event in upcomingEvents" :key="event.id" class="col-md-6 col-lg-4">
         <div class="card p-3 h-100">
           <h3 class="h6 fw-bold mb-1">{{ event.title }}</h3>
+          <p v-if="grantFor(event)" class="small mb-1">
+            🌳 <router-link :to="`/grants/${event.grantId}`" class="text-brand">{{ grantFor(event).project }}</router-link>
+          </p>
           <p class="small text-muted mb-2">
             📅 {{ formatDateTime(event.start) }} – {{ formatTime(event.end) }}<br />
             📍 {{ event.place }}
@@ -224,6 +243,12 @@ const saveNewEvent = async () => {
   <!-- Event details -->
   <Dialog v-model:visible="detailsVisible" :header="selectedEvent?.title" modal :style="{ width: '30rem' }">
     <template v-if="selectedEvent">
+      <p v-if="grantFor(selectedEvent)" class="mb-2">
+        🌳 Part of
+        <router-link :to="`/grants/${selectedEvent.grantId}`" class="text-brand fw-semibold">
+          {{ grantFor(selectedEvent).project }}
+        </router-link>
+      </p>
       <p class="mb-1">📅 {{ formatDateTime(selectedEvent.start) }} – {{ formatTime(selectedEvent.end) }}</p>
       <p class="mb-2">📍 {{ selectedEvent.place }}</p>
       <p v-if="selectedEvent.description" class="text-muted">{{ selectedEvent.description }}</p>
@@ -266,6 +291,15 @@ const saveNewEvent = async () => {
   <!-- Admin: add event -->
   <Dialog v-model:visible="newEventVisible" header="Add a planting day" modal :style="{ width: '32rem' }">
     <form @submit.prevent="saveNewEvent" novalidate>
+      <div class="mb-3">
+        <label for="event-grant" class="form-label">Grant project</label>
+        <select id="event-grant" v-model="newEvent.grantId" class="form-select" @change="onGrantChosen">
+          <option :value="null" disabled>Choose a grant…</option>
+          <option v-for="grant in grants" :key="grant.id" :value="grant.id">
+            {{ grant.project }} ({{ grant.suburb }})
+          </option>
+        </select>
+      </div>
       <div class="mb-3">
         <label for="event-title" class="form-label">Title</label>
         <input id="event-title" v-model="newEvent.title" type="text" class="form-control" />

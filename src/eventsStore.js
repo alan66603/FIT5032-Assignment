@@ -17,7 +17,7 @@ import { currentUser } from '@/auth'
  * Volunteer planting days (BR F.1: booking with calendar constraints).
  *
  * Firestore:
- *   events/{eventId}            { title, description, place, start, end, capacity, bookedCount, createdBy }
+ *   events/{eventId}            { grantId, title, description, place, start, end, capacity, bookedCount, createdBy }
  *   bookings/{eventId}_{uid}    { eventId, uid, email, bookedAt }
  *
  * The booking ID is eventId_uid, so one person can only book an event once.
@@ -120,9 +120,17 @@ export async function cancelBooking(event) {
   })
 }
 
-/** Admins only (checked again by the Firestore rules). start/end are JS Dates. */
-export async function createEvent({ title, description, place, start, end, capacity }) {
+/** All events that belong to one grant, soonest first. */
+export const eventsForGrant = (grantId) =>
+  events.value.filter((event) => event.grantId === grantId).sort((a, b) => a.start - b.start)
+
+/**
+ * Admins only (checked again by the Firestore rules). start/end are JS Dates.
+ * grantId links the planting day to the grant project it works on.
+ */
+export async function createEvent({ grantId, title, description, place, start, end, capacity }) {
   await addDoc(collection(db, 'events'), {
+    grantId,
     title,
     description,
     place,
