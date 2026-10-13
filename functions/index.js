@@ -261,3 +261,62 @@ exports.updateUser = onRequest((req, res) => {
     }
   });
 });
+
+// sendBulkEmail (BR F.1 Bulk email): an admin sends one email to many
+// selected users. Recipients go in BCC so nobody sees anyone else's address.
+// This is a separate function from sendEmail (BR D.2).
+const MAX_BULK_RECIPIENTS = 100;
+
+exports.sendBulkEmail = onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const caller = await checkAdmin(req, res);
+      if (!caller) return;
+
+      const { recipients, subject, message, attachment } = req.body;
+
+      // 1. Check the recipient list: an array of valid, unique email addresses.
+      if (!Array.isArray(recipients) || recipients.length === 0) {
+        res.status(400).send({ error: "Choose at least one recipient." });
+        return;
+      }
+      const uniqueRecipients = [...new Set(recipients.map((email) => String(email).trim().toLowerCase()))];
+      if (uniqueRecipients.length > MAX_BULK_RECIPIENTS) {
+        res.status(400).send({ error: `You can email at most ${MAX_BULK_RECIPIENTS} people at once.` });
+        return;
+      }
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalid = uniqueRecipients.find((email) => !emailPattern.test(email));
+      if (invalid) {
+        res.status(400).send({ error: `"${invalid}" is not a valid email address.` });
+        return;
+      }
+      if (!subject || !message) {
+        res.status(400).send({ error: "Subject and message are required." });
+        return;
+      }
+
+      // 2. One email, every recipient in BCC.
+      const email = {
+        from: `"GreenRoots Melbourne" <${process.env.GMAIL_USER}>`,
+        to: process.env.GMAIL_USER,
+        bcc: uniqueRecipients,
+        subject: subject,
+        html: message,
+        text: message.replace(/<[^>]*>/g, ""),
+      };
+      if (attachment) {
+        email.attachments = [
+          { filename: attachment.filename, content: attachment.content, encoding: "base64" },
+        ];
+      }
+
+      await transporter.sendMail(email);
+      console.log(`Bulk email sent by ${caller.uid} to ${uniqueRecipients.length} recipients`);
+      res.status(200).send({ sent: uniqueRecipients.length });
+    } catch (error) {
+      console.error("Error sending bulk email:", error.message);
+      res.status(500).send({ error: "Error sending bulk email" });
+    }
+  });
+});
