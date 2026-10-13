@@ -188,7 +188,7 @@ const saveNewEvent = async () => {
     </p>
     <p v-if="isAdmin" class="small text-muted">Admins: click an empty day on the calendar to add an event on that day.</p>
 
-    <div class="card p-3 mb-5">
+    <div class="card p-3 mb-5 calendar">
       <FullCalendar :options="calendarOptions" />
     </div>
 
@@ -310,6 +310,25 @@ const saveNewEvent = async () => {
 </template>
 
 <style scoped>
+/* FullCalendar draws its own HTML, so :deep() is needed to style it.
+   Use the site's green for the buttons and today's date. */
+.calendar :deep(.fc) {
+  --fc-button-bg-color: var(--gr-green);
+  --fc-button-border-color: var(--gr-green);
+  --fc-button-hover-bg-color: var(--gr-green-dark);
+  --fc-button-hover-border-color: var(--gr-green-dark);
+  --fc-button-active-bg-color: var(--gr-green-dark);
+  --fc-button-active-border-color: var(--gr-green-dark);
+  --fc-today-bg-color: var(--gr-green-soft);
+}
+
+/* Day numbers and weekday names are links inside FullCalendar; the site's
+   link style underlined them, so show them as plain text. */
+.calendar :deep(.fc a) {
+  color: inherit;
+  text-decoration: none;
+}
+
 .legend-dot {
   display: inline-block;
   width: 0.75rem;
