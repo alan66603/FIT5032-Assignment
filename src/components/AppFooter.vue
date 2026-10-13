@@ -19,6 +19,7 @@ const year = new Date().getFullYear()
             <li><router-link to="/" class="footer-link">Home</router-link></li>
             <li><router-link to="/grants" class="footer-link">Grants</router-link></li>
             <li><router-link to="/map" class="footer-link">Map</router-link></li>
+            <li><router-link to="/events" class="footer-link">Planting days</router-link></li>
             <li><router-link to="/about" class="footer-link">About</router-link></li>
           </ul>
         </div>

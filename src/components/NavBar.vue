@@ -47,6 +47,9 @@ const handleLogout = async () => {
                         <router-link class="nav-link" to="/map">Map</router-link>
                     </li>
                     <li class="nav-item">
+                        <router-link class="nav-link" to="/events">Events</router-link>
+                    </li>
+                    <li class="nav-item">
                         <router-link class="nav-link" to="/about">About</router-link>
                     </li>
                     <li class="nav-item" v-if="currentUser && DASHBOARD_PATHS[userRole]">
