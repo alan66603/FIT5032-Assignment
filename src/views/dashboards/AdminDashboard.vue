@@ -5,15 +5,17 @@ import UserAvatar from '@/components/UserAvatar.vue'
 // grants is a computed list that includes status changes made by admins.
 import { grants } from '@/grantsStore'
 import ManageUsers from '@/components/ManageUsers.vue'
+import AdminCharts from '@/components/AdminCharts.vue'
 
-// The real number of accounts, sent up by the Manage users section once it loads.
-const userCount = ref(null)
-const onUsersLoaded = (users) => {
-  userCount.value = users.length
+// The real accounts, sent up by the Manage users section once it loads.
+// Used for the user count and the "Users by role" chart.
+const users = ref(null)
+const onUsersLoaded = (loadedUsers) => {
+  users.value = loadedUsers
 }
 
 const stats = computed(() => [
-  { icon: '👤', value: userCount.value ?? '…', label: 'registered users' },
+  { icon: '👤', value: users.value ? users.value.length : '…', label: 'registered users' },
   { icon: '📄', value: grants.value.length, label: 'grants' },
   { icon: '⏳', value: grants.value.filter((grant) => grant.status === 'In Review').length, label: 'awaiting review' },
   { icon: '💵', value: '$' + grants.value.reduce((sum, grant) => sum + grant.amount, 0).toLocaleString(), label: 'requested' },
@@ -55,6 +57,11 @@ const quickLinks = [
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Interactive charts (Chart.js, Firestore data) -->
+    <div class="mb-4">
+      <AdminCharts :users="users ?? []" />
     </div>
 
     <div class="row g-4">
