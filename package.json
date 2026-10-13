@@ -24,6 +24,8 @@
     "bootstrap": "^5.3.8",
     "chart.js": "^4.5.1",
     "firebase": "^12.19.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "mapbox-gl": "^3.32.0",
     "primevue": "^4.5.5",
     "tinymce": "^8.9.3",
