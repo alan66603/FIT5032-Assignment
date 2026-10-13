@@ -46,10 +46,11 @@ const time = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minut
         <!-- Map zoomed to the event's grant, chosen as the directions destination -->
         <router-link
           :to="`/map?grant=${event.grantId}`"
-          class="btn btn-outline-brand btn-sm rounded-pill px-3"
+          class="text-brand directions-link"
           :aria-label="`Directions to ${event.title}`"
+          :title="`Directions to ${event.title}`"
         >
-          <NavigateIcon /> Directions
+          <NavigateIcon size="1.6em" />
         </router-link>
       </div>
     </div>
@@ -57,6 +58,15 @@ const time = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minut
 </template>
 
 <style scoped>
+/* Icon-only Directions link: no button box, just the icon. */
+.directions-link {
+  line-height: 1;
+  transition: opacity 0.15s ease;
+}
+.directions-link:hover {
+  opacity: 0.7;
+}
+
 .event-link {
   text-decoration: none;
 }
