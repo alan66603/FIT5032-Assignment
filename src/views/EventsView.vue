@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -71,6 +72,19 @@ const openEvent = (eventId) => {
   bookingMessage.value = null
   detailsVisible.value = true
 }
+
+// Coming from a dashboard link (/events?event=abc123): open that event's
+// details as soon as the events have loaded from Firestore.
+const route = useRoute()
+watch(
+  [events, () => route.query.event],
+  ([eventList, eventId]) => {
+    if (eventId && selectedId.value !== eventId && eventList.some((event) => event.id === eventId)) {
+      openEvent(eventId)
+    }
+  },
+  { immediate: true },
+)
 
 const book = async () => {
   bookingError.value = null

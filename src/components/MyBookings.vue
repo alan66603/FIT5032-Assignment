@@ -32,17 +32,37 @@ const time = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minut
         <div class="small text-uppercase">{{ month(event.start) }}</div>
       </div>
       <div class="flex-grow-1">
-        <div class="fw-semibold">{{ event.title }}</div>
+        <!-- Opens this event's details on the Events page -->
+        <router-link :to="`/events?event=${event.id}`" class="fw-semibold text-brand event-link">
+          {{ event.title }}
+        </router-link>
         <div class="small text-muted">
           📍 {{ event.place }} · {{ time(event.start) }} – {{ time(event.end) }}
         </div>
       </div>
-      <span class="badge rounded-pill bg-brand-soft text-brand">Going</span>
+      <div class="d-flex flex-column align-items-end gap-2">
+        <span class="badge rounded-pill bg-brand-soft text-brand">Going</span>
+        <!-- Map zoomed to the event's grant, chosen as the directions destination -->
+        <router-link
+          :to="`/map?grant=${event.grantId}`"
+          class="btn btn-outline-brand btn-sm rounded-pill px-3"
+          :aria-label="`Directions to ${event.title}`"
+        >
+          🧭 Directions
+        </router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.event-link {
+  text-decoration: none;
+}
+.event-link:hover {
+  text-decoration: underline;
+}
+
 .date-box {
   width: 3.5rem;
   text-align: center;
