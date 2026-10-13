@@ -18,6 +18,7 @@
     "axios": "^1.20.0",
     "bootstrap": "^5.3.8",
     "firebase": "^12.19.0",
+    "mapbox-gl": "^3.32.0",
     "primevue": "^4.5.5",
     "tinymce": "^8.9.3",
     "vue": "^3.5.40",

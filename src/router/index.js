@@ -4,6 +4,7 @@ import AboutView from "@/views/AboutView.vue";
 import AccessDeniedView from "@/views/AccessDeniedView.vue";
 import { currentUser, userRole, waitForAuthReady } from "@/auth";
 import GrantsView from "@/views/GrantsView.vue";
+import MapView from "@/views/MapView.vue";
 import FirebaseSigninView from "@/views/FirebaseSigninView.vue";
 import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
 import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
@@ -32,6 +33,11 @@ const routes = [
     path: "/grants",
     name: "Grants",
     component: GrantsView,
+  },
+  {
+    path: "/map",
+    name: "Map",
+    component: MapView,
   },
   {
     path: "/FireLogin",
