@@ -2,9 +2,12 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import MultiSelect from 'primevue/multiselect'
-import { auth } from '@/firebase/init'
+import { collection, getDocs } from 'firebase/firestore'
+import { auth, db } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
 import { bulkRecipients } from '@/emailDraft'
+import { grants } from '@/grantsStore'
+import { pdfAsBase64, GRANT_COLUMNS, todayStamp } from '@/exportUtils'
 
 // TinyMCE rich text editor, self-hosted from npm (no API key needed).
 // These imports bundle the editor, its theme, icons, skin and the plugins we use.
@@ -92,6 +95,44 @@ const onFileChange = (event) => {
   file.value = event.target.files[0] ?? null
 }
 
+// --- Attach a grants report (BR E.4 export + BR D.2 email) ---
+// Builds the same PDF as "Export PDF" on the Grants page, with each grant's
+// average rating from Firestore, and attaches it to this email.
+const reportAttachment = ref(null) // { filename, content (base64) }
+const isBuildingReport = ref(false)
+
+const attachGrantsReport = async () => {
+  errorMessage.value = null
+  isBuildingReport.value = true
+  try {
+    const snapshot = await getDocs(collection(db, 'ratings'))
+    const totals = {}
+    snapshot.forEach((ratingDoc) => {
+      const { grantId, score } = ratingDoc.data()
+      if (!totals[grantId]) totals[grantId] = { sum: 0, count: 0 }
+      totals[grantId].sum += score
+      totals[grantId].count += 1
+    })
+    const rows = grants.value.map((grant) => ({
+      ...grant,
+      averageRating: totals[grant.id] ? totals[grant.id].sum / totals[grant.id].count : 0,
+      ratingCount: totals[grant.id]?.count ?? 0,
+    }))
+
+    reportAttachment.value = {
+      filename: `grants-report-${todayStamp()}.pdf`,
+      content: pdfAsBase64('Community Greening Grants report', rows, GRANT_COLUMNS),
+    }
+    if (!subject.value) subject.value = 'GreenRoots grants report'
+    if (!hasText(message.value)) message.value = '<p>Here is the latest GreenRoots grants report, attached as a PDF.</p>'
+  } catch (error) {
+    console.error('Error building report:', error)
+    errorMessage.value = 'Could not build the report. Please try again.'
+  } finally {
+    isBuildingReport.value = false
+  }
+}
+
 // Turn the chosen file into base64 text so it can be sent inside JSON.
 const readFileAsBase64 = (chosenFile) => {
   return new Promise((resolve, reject) => {
@@ -122,8 +163,9 @@ const sendEmail = async () => {
 
   isSending.value = true
   try {
-    let attachment = null
-    if (file.value) {
+    // Either the generated report or a file the user chose.
+    let attachment = reportAttachment.value
+    if (!attachment && file.value) {
       attachment = { filename: file.value.name, content: await readFileAsBase64(file.value) }
     }
 
@@ -149,6 +191,7 @@ const sendEmail = async () => {
     }
     subject.value = ''
     message.value = ''
+    reportAttachment.value = null
   } catch (error) {
     console.error('Error sending email:', error)
     errorMessage.value = error.response?.data?.error ?? 'Error sending email. Please try again.'
@@ -220,13 +263,36 @@ const sendEmail = async () => {
 
         <div class="mb-3">
           <label for="email-attachment" class="form-label">Attachment (optional, max 5 MB)</label>
-          <input
-            id="email-attachment"
-            type="file"
-            class="form-control"
-            accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
-            @change="onFileChange"
-          />
+
+          <!-- A generated grants report replaces the file picker until it is removed -->
+          <div v-if="reportAttachment" class="d-flex align-items-center gap-2 p-2 border rounded bg-light">
+            <span>📄 {{ reportAttachment.filename }}</span>
+            <button
+              type="button"
+              class="btn btn-sm btn-link text-danger ms-auto"
+              aria-label="Remove the attached report"
+              @click="reportAttachment = null"
+            >
+              Remove
+            </button>
+          </div>
+          <template v-else>
+            <input
+              id="email-attachment"
+              type="file"
+              class="form-control"
+              accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
+              @change="onFileChange"
+            />
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-brand rounded-pill mt-2"
+              :disabled="isBuildingReport"
+              @click="attachGrantsReport"
+            >
+              {{ isBuildingReport ? 'Building report…' : '📎 Attach the grants report (PDF)' }}
+            </button>
+          </template>
         </div>
 
         <div v-if="errorMessage" class="alert alert-danger py-2" role="alert">{{ errorMessage }}</div>
