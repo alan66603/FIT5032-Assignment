@@ -1,28 +1,50 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
+import { events, myEvents, myBookings } from '@/eventsStore'
+import { grants } from '@/data/grants'
+import MyBookings from '@/components/MyBookings.vue'
 
-// ---- Demo data (not stored in Firestore yet) ----
-const stats = [
-  { icon: '⏱️', value: 42, label: 'hours volunteered' },
-  { icon: '📅', value: 9, label: 'events attended' },
-  { icon: '🌱', value: 156, label: 'trees planted' },
-]
+// Everything on this dashboard comes from the volunteer's real bookings and ratings.
 
-// Yearly goal for the progress bar
-const hoursGoal = 60
-const hoursDone = 42
+const myRatings = ref([])
 
-const upcomingEvents = [
-  { day: '25', month: 'Oct', title: 'Kensington Verge Planting', place: 'Macaulay Rd, Kensington', time: '9:00am – 12:00pm' },
-  { day: '02', month: 'Nov', title: 'Moonee Ponds Creek Clean-up', place: 'Debney Park, Flemington', time: '8:30am – 11:30am' },
-  { day: '16', month: 'Nov', title: 'Laneway Forest Mulching Day', place: 'Easey St, Collingwood', time: '10:00am – 1:00pm' },
-]
+onMounted(async () => {
+  try {
+    const myRatingsQuery = query(collection(db, 'ratings'), where('uid', '==', currentUser.value.uid))
+    const snapshot = await getDocs(myRatingsQuery)
+    myRatings.value = snapshot.docs.map((ratingDoc) => ratingDoc.data())
+  } catch (error) {
+    console.error('Error loading ratings:', error)
+  }
+})
 
-const recentActivity = [
-  { text: 'Planted 18 seedlings at Laneway Pocket Forest', date: '12/10/2026' },
-  { text: 'Rated "Union Street Community Garden" 5 stars', date: '08/10/2026' },
-  { text: 'Attended Footscray Schoolyard Shade Trees day', date: '27/09/2026' },
-]
+const stats = computed(() => [
+  { icon: '📅', value: myEvents.value.filter((event) => event.start > new Date()).length, label: 'upcoming bookings' },
+  { icon: '🌱', value: myEvents.value.filter((event) => event.end <= new Date()).length, label: 'planting days attended' },
+  { icon: '⭐', value: myRatings.value.length, label: 'grants rated' },
+])
+
+// Recent activity: my ratings and bookings together, newest first.
+const recentActivity = computed(() => {
+  const items = []
+  for (const rating of myRatings.value) {
+    const grant = grants.find((g) => g.id === rating.grantId)
+    if (grant && rating.updatedAt) {
+      items.push({ text: `Rated "${grant.project}" ${rating.score} ★`, date: rating.updatedAt.toDate() })
+    }
+  }
+  for (const booking of myBookings.value) {
+    const event = events.value.find((e) => e.id === booking.eventId)
+    // bookedAt is briefly null right after booking, until the server sets the time.
+    if (event && booking.bookedAt) {
+      items.push({ text: `Booked "${event.title}"`, date: booking.bookedAt.toDate() })
+    }
+  }
+  return items.sort((a, b) => b.date - a.date).slice(0, 5)
+})
 </script>
 
 <template>
@@ -52,47 +74,23 @@ const recentActivity = [
     </div>
 
     <div class="row g-4">
-      <!-- Upcoming events -->
+      <!-- My upcoming bookings -->
       <div class="col-lg-7">
-        <div class="card p-4 h-100">
-          <h2 class="h5 fw-bold mb-3">Upcoming planting days</h2>
-          <div
-            v-for="event in upcomingEvents"
-            :key="event.title"
-            class="d-flex align-items-center py-3 border-bottom"
-          >
-            <div class="date-box me-3">
-              <div class="fw-bold fs-5">{{ event.day }}</div>
-              <div class="small text-uppercase">{{ event.month }}</div>
-            </div>
-            <div class="flex-grow-1">
-              <div class="fw-semibold">{{ event.title }}</div>
-              <div class="small text-muted">📍 {{ event.place }} · {{ event.time }}</div>
-            </div>
-            <span class="badge rounded-pill bg-brand-soft text-brand">Going</span>
-          </div>
-        </div>
+        <MyBookings />
       </div>
 
-      <!-- Goal + activity -->
+      <!-- Recent activity -->
       <div class="col-lg-5">
-        <div class="card p-4 mb-4">
-          <h2 class="h5 fw-bold mb-3">2026 hours goal</h2>
-          <div class="progress mb-2" style="height: 12px">
-            <div
-              class="progress-bar bg-success"
-              :style="{ width: (hoursDone / hoursGoal) * 100 + '%' }"
-            ></div>
-          </div>
-          <p class="small text-muted mb-0">{{ hoursDone }} of {{ hoursGoal }} hours — almost there!</p>
-        </div>
-
-        <div class="card p-4">
+        <div class="card p-4 h-100">
           <h2 class="h5 fw-bold mb-3">Recent activity</h2>
-          <ul class="list-unstyled mb-0">
-            <li v-for="item in recentActivity" :key="item.text" class="mb-3">
+          <p v-if="recentActivity.length === 0" class="text-muted mb-0">
+            Nothing yet. <router-link to="/grants" class="text-brand">Rate a grant</router-link> or
+            <router-link to="/events" class="text-brand">book a planting day</router-link>.
+          </p>
+          <ul v-else class="list-unstyled mb-0">
+            <li v-for="item in recentActivity" :key="item.text + item.date" class="mb-3">
               <div class="small">{{ item.text }}</div>
-              <div class="small text-muted">{{ item.date }}</div>
+              <div class="small text-muted">{{ item.date.toLocaleDateString('en-AU') }}</div>
             </li>
           </ul>
         </div>
@@ -100,15 +98,3 @@ const recentActivity = [
     </div>
   </div>
 </template>
-
-<style scoped>
-.date-box {
-  width: 3.5rem;
-  text-align: center;
-  padding: 0.4rem 0;
-  border-radius: 0.75rem;
-  background-color: var(--gr-green-soft);
-  color: var(--gr-green);
-  line-height: 1.1;
-}
-</style>

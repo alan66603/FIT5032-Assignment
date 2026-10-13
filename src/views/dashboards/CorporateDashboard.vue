@@ -1,6 +1,7 @@
 <script setup>
 import { currentUser, userRole } from '@/auth'
 import { grants } from '@/data/grants'
+import MyBookings from '@/components/MyBookings.vue'
 
 // ---- Demo data (not stored in Firestore yet) ----
 const stats = [
@@ -21,11 +22,6 @@ const sponsoredProjects = sponsorships.map((item) => ({
   ...item,
   grant: grants.find((grant) => grant.id === item.grantId),
 }))
-
-const teamDays = [
-  { date: '30/10/2026', title: 'Team planting day – Footscray', spots: '12 / 20 booked' },
-  { date: '21/11/2026', title: 'End-of-year mulching – Collingwood', spots: '5 / 15 booked' },
-]
 </script>
 
 <template>
@@ -74,20 +70,7 @@ const teamDays = [
       </div>
     </div>
 
-    <!-- Team days -->
-    <div class="card p-4">
-      <h2 class="h5 fw-bold mb-3">Upcoming team days</h2>
-      <div
-        v-for="day in teamDays"
-        :key="day.title"
-        class="d-flex flex-wrap justify-content-between align-items-center py-3 border-bottom"
-      >
-        <div>
-          <div class="fw-semibold">{{ day.title }}</div>
-          <div class="small text-muted">{{ day.date }}</div>
-        </div>
-        <span class="badge rounded-pill bg-brand-soft text-brand">{{ day.spots }}</span>
-      </div>
-    </div>
+    <!-- Team planting days this company has booked (real bookings from Firestore) -->
+    <MyBookings title="Your team's upcoming planting days" />
   </div>
 </template>
