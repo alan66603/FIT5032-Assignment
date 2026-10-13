@@ -11,6 +11,7 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { auth } from '@/firebase/init'
 import { currentUser } from '@/auth'
 import { bulkRecipients } from '@/emailDraft'
+import { downloadCsv, downloadPdf, todayStamp } from '@/exportUtils'
 
 // Our admin Cloud Functions (listUsers, createUser, updateUser).
 // Copy this base URL from Firebase Console > Functions after `firebase deploy`.
@@ -75,6 +76,20 @@ const emailSelected = () => {
 }
 
 const formatDateTime = (date) => (date ? date.toLocaleString('en-AU') : '—')
+
+// --- Export (BR E.4): the rows shown, after search, filters and sorting ---
+const userTable = ref(null)
+const USER_COLUMNS = [
+  { header: 'Email', value: (user) => user.email },
+  { header: 'Role', value: (user) => user.role ?? '' },
+  { header: 'Status', value: (user) => (user.disabled ? 'Disabled' : 'Active') },
+  { header: 'Created', value: (user) => formatDateTime(user.createdAt) },
+  { header: 'Last sign-in', value: (user) => formatDateTime(user.lastSignIn) },
+]
+const rowsToExport = () => userTable.value?.processedData ?? users.value
+
+const exportCsv = () => downloadCsv(`users-${todayStamp()}.csv`, rowsToExport(), USER_COLUMNS)
+const exportPdf = () => downloadPdf(`users-${todayStamp()}.pdf`, 'GreenRoots users', rowsToExport(), USER_COLUMNS)
 const isSelf = (user) => user.uid === currentUser.value?.uid
 
 // --- Add / edit dialog ---
@@ -183,6 +198,7 @@ const saveUser = async () => {
     <!-- PrimeVue DataTable: sort, global search, search by column, 10 rows per page -->
     <div>
       <DataTable
+        ref="userTable"
         v-model:filters="filters"
         v-model:selection="selectedUsers"
         :value="users"
@@ -200,7 +216,17 @@ const saveUser = async () => {
         stripedRows
       >
         <template #header>
-          <InputText v-model="filters.global.value" placeholder="🔍 Search users" aria-label="Search users" />
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <InputText v-model="filters.global.value" placeholder="🔍 Search users" aria-label="Search users" />
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="exportCsv">
+                ⬇ Export CSV
+              </button>
+              <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="exportPdf">
+                ⬇ Export PDF
+              </button>
+            </div>
+          </div>
         </template>
 
         <template #empty>
