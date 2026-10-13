@@ -6,6 +6,7 @@ import { db } from '@/firebase/init'
 import { currentUser } from '@/auth'
 import { grants } from '@/grantsStore'
 import { eventsForGrant, myBookedEventIds, bookEvent, cancelBooking } from '@/eventsStore'
+import NavigateIcon from '@/components/NavigateIcon.vue'
 
 // One grant project: its details, average rating and the planting days that belong to it.
 
@@ -116,7 +117,7 @@ const toggleBooking = async (event) => {
           </div>
 
           <router-link :to="`/map?grant=${grant.id}`" class="btn btn-outline-brand rounded-pill w-100">
-            🧭 See on map &amp; get directions
+            <NavigateIcon /> See on map &amp; get directions
           </router-link>
         </div>
 

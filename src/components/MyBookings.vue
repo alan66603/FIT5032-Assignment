@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { myEvents } from '@/eventsStore'
+import NavigateIcon from '@/components/NavigateIcon.vue'
 
 defineProps({
   title: { type: String, default: 'My upcoming planting days' },
@@ -48,7 +49,7 @@ const time = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minut
           class="btn btn-outline-brand btn-sm rounded-pill px-3"
           :aria-label="`Directions to ${event.title}`"
         >
-          🧭 Directions
+          <NavigateIcon /> Directions
         </router-link>
       </div>
     </div>

@@ -5,6 +5,7 @@ import axios from 'axios'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { grants } from '@/grantsStore'
+import NavigateIcon from '@/components/NavigateIcon.vue'
 
 // BR E.2 Geo Location, using MapBox:
 //   1. every grant shown as a marker on the map
@@ -133,6 +134,12 @@ const travelModes = [
   { value: 'walking', label: '🚶 Walk' },
   { value: 'cycling', label: '🚲 Cycle' },
 ]
+
+// Clicking Drive / Walk / Cycle picks the mode and gets the route at once.
+const getDirectionsBy = (mode) => {
+  travelMode.value = mode
+  getDirections()
+}
 
 // The browser's Geolocation API, wrapped in a Promise so we can await it.
 const getCurrentPosition = () =>
@@ -263,7 +270,7 @@ const getDirections = async () => {
 
         <!-- Directions -->
         <div class="card p-4">
-          <h2 class="h5 fw-bold mb-3">🧭 Directions to a grant</h2>
+          <h2 class="h5 fw-bold mb-3"><NavigateIcon /> Directions to a grant</h2>
           <form @submit.prevent="getDirections" novalidate>
             <fieldset class="mb-3">
               <legend class="form-label fs-6">Start from</legend>
@@ -295,25 +302,25 @@ const getDirections = async () => {
               </select>
             </div>
 
-            <fieldset class="mb-3">
-              <legend class="form-label fs-6">Travel by</legend>
-              <div class="btn-group w-100" role="group">
-                <template v-for="mode in travelModes" :key="mode.value">
-                  <input
-                    :id="`mode-${mode.value}`"
-                    v-model="travelMode"
-                    type="radio"
-                    class="btn-check"
-                    :value="mode.value"
-                  />
-                  <label :for="`mode-${mode.value}`" class="btn btn-outline-brand">{{ mode.label }}</label>
-                </template>
+            <!-- Each travel mode button gets the route straight away. -->
+            <fieldset>
+              <legend class="form-label fs-6">Get directions by</legend>
+              <div class="btn-group w-100" role="group" aria-label="Get directions by">
+                <button
+                  v-for="mode in travelModes"
+                  :key="mode.value"
+                  type="button"
+                  class="btn"
+                  :class="trip && travelMode === mode.value ? 'btn-brand' : 'btn-outline-brand'"
+                  :aria-pressed="trip && travelMode === mode.value ? 'true' : 'false'"
+                  :disabled="isRouting"
+                  @click="getDirectionsBy(mode.value)"
+                >
+                  {{ mode.label }}
+                </button>
               </div>
+              <p v-if="isRouting" class="small text-muted mt-2 mb-0" role="status">Finding route…</p>
             </fieldset>
-
-            <button type="submit" class="btn btn-brand rounded-pill w-100" :disabled="isRouting">
-              {{ isRouting ? 'Finding route…' : 'Get directions' }}
-            </button>
           </form>
 
           <div v-if="routeError" class="alert alert-danger py-2 mt-3 mb-0 small" role="alert">{{ routeError }}</div>
