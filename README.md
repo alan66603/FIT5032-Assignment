@@ -4,6 +4,9 @@ FIT5032 assignment — a Vue 3 web app for a community greening charity in
 Melbourne. Volunteers and corporate partners can browse and rate community
 greening grants; administrators get a dedicated dashboard.
 
+**Live site:** https://fit5032-assignment-4sz.pages.dev (Cloudflare Pages,
+deployed automatically from the `main` branch on GitHub).
+
 Built with Vue 3 (Composition API, `<script setup>`), Vue Router, Bootstrap 5,
 and Firebase (Authentication + Cloud Firestore).
 
