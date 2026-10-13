@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import axios from 'axios'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -16,6 +17,7 @@ mapboxgl.accessToken = MAPBOX_TOKEN
 
 const MELBOURNE = [144.9631, -37.8136] // [longitude, latitude] - MapBox puts longitude first
 
+const route = useRoute()
 const mapContainer = ref(null)
 // The map is a plain variable, not a ref: Vue's reactivity would wrap the
 // MapBox object in a proxy, which breaks it.
@@ -46,11 +48,21 @@ onMounted(() => {
   map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
   // Feature 1: a coloured marker for every grant.
+  const markers = {}
   for (const grant of grants.value) {
-    new mapboxgl.Marker({ color: statusColours[grant.status] })
+    markers[grant.id] = new mapboxgl.Marker({ color: statusColours[grant.status] })
       .setLngLat([grant.lng, grant.lat])
       .setPopup(makePopup(grant))
       .addTo(map)
+  }
+
+  // Coming from a grant's page (/map?grant=3): zoom to that grant, open its
+  // popup and choose it as the directions destination.
+  const linkedGrant = grants.value.find((grant) => grant.id === Number(route.query.grant))
+  if (linkedGrant) {
+    destinationId.value = linkedGrant.id
+    map.flyTo({ center: [linkedGrant.lng, linkedGrant.lat], zoom: 14 })
+    markers[linkedGrant.id].togglePopup()
   }
 })
 

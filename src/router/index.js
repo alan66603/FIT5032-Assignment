@@ -5,6 +5,7 @@ import AccessDeniedView from "@/views/AccessDeniedView.vue";
 import { currentUser, userRole, waitForAuthReady } from "@/auth";
 import GrantsView from "@/views/GrantsView.vue";
 import MapView from "@/views/MapView.vue";
+import GrantDetailView from "@/views/GrantDetailView.vue";
 import EventsView from "@/views/EventsView.vue";
 import FirebaseSigninView from "@/views/FirebaseSigninView.vue";
 import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
@@ -35,6 +36,12 @@ const routes = [
     path: "/grants",
     name: "Grants",
     component: GrantsView,
+  },
+  {
+    // One grant, e.g. /grants/3 - the id is read with useRoute().params.id
+    path: "/grants/:id",
+    name: "GrantDetail",
+    component: GrantDetailView,
   },
   {
     path: "/map",

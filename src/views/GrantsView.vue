@@ -183,7 +183,9 @@ const rateGrant = async (grantId, score) => {
                         <div class="d-flex align-items-center">
                             <img :src="data.image" :alt="data.project" class="grant-thumb me-3" />
                             <div>
-                                <div class="fw-semibold">{{ data.project }}</div>
+                                <router-link :to="`/grants/${data.id}`" class="fw-semibold text-brand grant-link">
+                                    {{ data.project }}
+                                </router-link>
                                 <div class="small text-muted grant-desc">{{ data.description }}</div>
                             </div>
                         </div>
@@ -284,6 +286,15 @@ const rateGrant = async (grantId, score) => {
 </template>
 
 <style scoped>
+/* The project name links to the grant's own page. */
+.grant-link {
+    display: block;
+    text-decoration: none;
+}
+.grant-link:hover {
+    text-decoration: underline;
+}
+
 .grant-thumb {
     width: 64px;
     height: 64px;
