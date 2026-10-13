@@ -74,6 +74,51 @@ service cloud.firestore {
         && request.resource.data.updatedBy == request.auth.uid;
     }
 
+    // ---- events ------------------------------------------------------------
+    // events/{eventId}  { title, description, place, start, end, capacity, bookedCount, createdBy }
+    // Everyone can see events. Admins create and edit them. A signed-in user
+    // may only move bookedCount up or down by one, and only in the same write
+    // that creates or deletes their own booking (checked with getAfter /
+    // existsAfter), never above capacity.
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+
+      allow update: if isAdmin()
+        || (signedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedCount'])
+          && (
+            // booking: +1, my booking is being created, still within capacity
+            (request.resource.data.bookedCount == resource.data.bookedCount + 1
+              && request.resource.data.bookedCount <= resource.data.capacity
+              && !exists(/databases/$(database)/documents/bookings/$(eventId + '_' + request.auth.uid))
+              && existsAfter(/databases/$(database)/documents/bookings/$(eventId + '_' + request.auth.uid)))
+            ||
+            // cancelling: -1, my booking is being deleted
+            (request.resource.data.bookedCount == resource.data.bookedCount - 1
+              && exists(/databases/$(database)/documents/bookings/$(eventId + '_' + request.auth.uid))
+              && !existsAfter(/databases/$(database)/documents/bookings/$(eventId + '_' + request.auth.uid)))
+          ));
+    }
+
+    // ---- bookings ----------------------------------------------------------
+    // bookings/{eventId}_{uid}  { eventId, uid, email, bookedAt }
+    match /bookings/{bookingId} {
+      allow read: if isOwner(resource.data.uid) || isAdmin();
+
+      // Only for myself, with the ID the app builds, and only together with
+      // the event's bookedCount going up by one.
+      allow create: if isOwner(request.resource.data.uid)
+        && request.resource.data.keys().hasOnly(['eventId', 'uid', 'email', 'bookedAt'])
+        && bookingId == request.resource.data.eventId + '_' + request.auth.uid
+        && getAfter(/databases/$(database)/documents/events/$(request.resource.data.eventId)).data.bookedCount
+          == get(/databases/$(database)/documents/events/$(request.resource.data.eventId)).data.bookedCount + 1;
+
+      allow delete: if isOwner(resource.data.uid)
+        && getAfter(/databases/$(database)/documents/events/$(resource.data.eventId)).data.bookedCount
+          == get(/databases/$(database)/documents/events/$(resource.data.eventId)).data.bookedCount - 1;
+    }
+
     // Everything else is denied by default.
   }
 }
