@@ -12,6 +12,7 @@ import CorporateDashboard from "@/views/dashboards/CorporateDashboard.vue";
 import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import SendEmailView from "@/views/SendEmailView.vue";
+import NotFoundView from "@/views/NotFoundView.vue";
 
 const routes = [
   {
@@ -78,6 +79,12 @@ const routes = [
     name: "AdminDashboard",
     component: AdminDashboard,
     meta: { requiresAuth: true, allowedRoles: ["admin"] },
+  },
+  // Any URL that matches nothing above shows the 404 page. Must stay last.
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: NotFoundView,
   },
 ];
 
