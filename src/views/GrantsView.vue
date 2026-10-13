@@ -10,6 +10,7 @@ import { db } from '@/firebase/init';
 import { grants, GRANT_STATUSES, updateGrantStatus } from '@/grantsStore';
 import { currentUser, userRole } from '@/auth';
 import StarRating from '@/components/StarRating.vue';
+import { downloadCsv, downloadPdf, GRANT_COLUMNS, todayStamp } from '@/exportUtils';
 
 // DataTable filters (BR D.3): one search box for every column ("global"),
 // plus one box per column so users can search by an individual column.
@@ -110,8 +111,19 @@ const grantRows = computed(() =>
   grants.value.map((grant) => ({
     ...grant,
     averageRating: ratingStats.value[grant.id]?.average ?? 0,
+    ratingCount: ratingStats.value[grant.id]?.count ?? 0,
   })),
 )
+
+// --- Export (BR E.4) ---
+// grantTable is the DataTable. Its processedData is the rows after the
+// user's search, filters and sorting, so the file matches what they see.
+const grantTable = ref(null)
+const rowsToExport = () => grantTable.value?.processedData ?? grantRows.value
+
+const exportCsv = () => downloadCsv(`grants-${todayStamp()}.csv`, rowsToExport(), GRANT_COLUMNS)
+const exportPdf = () =>
+  downloadPdf(`grants-${todayStamp()}.pdf`, 'Community Greening Grants', rowsToExport(), GRANT_COLUMNS)
 
 // Document ID = grantId_uid so each user has one rating per grant and
 // rating again overwrites instead of adding a duplicate.
@@ -149,6 +161,7 @@ const rateGrant = async (grantId, score) => {
         <!-- PrimeVue DataTable (BR D.3): sort, global search, search by column, 10 rows per page -->
         <div class="card p-3">
             <DataTable
+                ref="grantTable"
                 v-model:filters="filters"
                 :value="grantRows"
                 dataKey="id"
@@ -171,6 +184,15 @@ const rateGrant = async (grantId, score) => {
                         <span v-if="!currentUser" class="small text-muted">
                             <router-link to="/FireLogin">Log in</router-link> to rate a grant.
                         </span>
+                        <!-- Export the rows shown (after search, filters and sorting) -->
+                        <div class="d-flex gap-2 ms-auto">
+                            <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="exportCsv">
+                                ⬇ Export CSV
+                            </button>
+                            <button type="button" class="btn btn-outline-brand btn-sm rounded-pill px-3" @click="exportPdf">
+                                ⬇ Export PDF
+                            </button>
+                        </div>
                     </div>
                 </template>
 
