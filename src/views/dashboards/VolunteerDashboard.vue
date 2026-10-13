@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/init'
 import { currentUser, userRole } from '@/auth'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { events, myEvents, myBookings } from '@/eventsStore'
 import { grants } from '@/data/grants'
 import MyBookings from '@/components/MyBookings.vue'
@@ -49,13 +50,16 @@ const recentActivity = computed(() => {
 
 <template>
   <section class="page-banner">
-    <div class="container">
-      <p class="eyebrow mb-2">Volunteer Dashboard</p>
-      <h1 class="h2 fw-bold mb-1">Welcome back 👋</h1>
-      <p class="mb-0">
-        {{ currentUser?.email }}
-        <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
-      </p>
+    <div class="container d-flex align-items-center gap-4">
+      <UserAvatar :size="88" />
+      <div>
+        <p class="eyebrow mb-2">Volunteer Dashboard</p>
+        <h1 class="h2 fw-bold mb-1">Welcome back 👋</h1>
+        <p class="mb-0">
+          {{ currentUser?.email }}
+          <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
+        </p>
+      </div>
     </div>
   </section>
 

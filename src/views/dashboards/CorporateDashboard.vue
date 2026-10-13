@@ -1,5 +1,6 @@
 <script setup>
 import { currentUser, userRole } from '@/auth'
+import UserAvatar from '@/components/UserAvatar.vue'
 import { grants } from '@/data/grants'
 import MyBookings from '@/components/MyBookings.vue'
 
@@ -26,13 +27,16 @@ const sponsoredProjects = sponsorships.map((item) => ({
 
 <template>
   <section class="page-banner">
-    <div class="container">
-      <p class="eyebrow mb-2">Corporate Dashboard</p>
-      <h1 class="h2 fw-bold mb-1">Your greening impact</h1>
-      <p class="mb-0">
-        {{ currentUser?.email }}
-        <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
-      </p>
+    <div class="container d-flex align-items-center gap-4">
+      <UserAvatar :size="88" />
+      <div>
+        <p class="eyebrow mb-2">Corporate Dashboard</p>
+        <h1 class="h2 fw-bold mb-1">Your greening impact</h1>
+        <p class="mb-0">
+          {{ currentUser?.email }}
+          <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
+        </p>
+      </div>
     </div>
   </section>
 

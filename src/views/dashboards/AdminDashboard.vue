@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { currentUser, userRole } from '@/auth'
+import UserAvatar from '@/components/UserAvatar.vue'
 // grants is a computed list that includes status changes made by admins.
 import { grants } from '@/grantsStore'
 import ManageUsers from '@/components/ManageUsers.vue'
@@ -29,13 +30,16 @@ const quickLinks = [
 
 <template>
   <section class="page-banner">
-    <div class="container">
-      <p class="eyebrow mb-2">Admin Dashboard</p>
-      <h1 class="h2 fw-bold mb-1">Site overview</h1>
-      <p class="mb-0">
-        {{ currentUser?.email }}
-        <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
-      </p>
+    <div class="container d-flex align-items-center gap-4">
+      <UserAvatar :size="88" />
+      <div>
+        <p class="eyebrow mb-2">Admin Dashboard</p>
+        <h1 class="h2 fw-bold mb-1">Site overview</h1>
+        <p class="mb-0">
+          {{ currentUser?.email }}
+          <span class="badge bg-light text-brand text-capitalize ms-2">{{ userRole }}</span>
+        </p>
+      </div>
     </div>
   </section>
 
