@@ -15,6 +15,7 @@ import AdminDashboard from "@/views/dashboards/AdminDashboard.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import SendEmailView from "@/views/SendEmailView.vue";
 import NotFoundView from "@/views/NotFoundView.vue";
+import ChooseRoleView from "@/views/ChooseRoleView.vue";
 
 const routes = [
   {
@@ -93,6 +94,13 @@ const routes = [
     component: AdminDashboard,
     meta: { requiresAuth: true, allowedRoles: ["admin"] },
   },
+  {
+    // First Google sign-in: pick volunteer or corporate.
+    path: "/choose-role",
+    name: "ChooseRole",
+    component: ChooseRoleView,
+    meta: { requiresAuth: true },
+  },
   // Any URL that matches nothing above shows the 404 page. Must stay last.
   {
     path: "/:pathMatch(.*)*",
@@ -113,6 +121,11 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !currentUser.value) {
     return { name: "Access Denied", query: { from: to.fullPath } };
+  }
+
+  // Signed in with Google but no role chosen yet: ask for it first.
+  if (to.meta.requiresAuth && currentUser.value && !userRole.value && to.name !== "ChooseRole") {
+    return { name: "ChooseRole" };
   }
 
   // Role-level protection: the route lists which roles may enter.
