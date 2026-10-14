@@ -95,8 +95,9 @@ const signin = async () => {
 
           <form @submit.prevent="signin" novalidate>
             <div class="mb-3">
-              <label class="form-label">Email</label>
+              <label for="signin-email" class="form-label">Email</label>
               <input
+                id="signin-email"
                 v-model="email"
                 type="email"
                 class="form-control"
@@ -109,8 +110,9 @@ const signin = async () => {
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Password</label>
+              <label for="signin-password" class="form-label">Password</label>
               <input
+                id="signin-password"
                 v-model="password"
                 type="password"
                 class="form-control"

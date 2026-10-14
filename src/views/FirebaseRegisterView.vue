@@ -137,8 +137,9 @@ const register = async () => {
 
           <form @submit.prevent="register" novalidate>
             <div class="mb-3">
-              <label class="form-label">Email</label>
+              <label for="register-email" class="form-label">Email</label>
               <input
+                id="register-email"
                 v-model="email"
                 type="email"
                 class="form-control"
@@ -151,8 +152,9 @@ const register = async () => {
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Password</label>
+              <label for="register-password" class="form-label">Password</label>
               <input
+                id="register-password"
                 v-model="password"
                 type="password"
                 class="form-control"
@@ -165,8 +167,9 @@ const register = async () => {
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Confirm Password</label>
+              <label for="register-confirm" class="form-label">Confirm Password</label>
               <input
+                id="register-confirm"
                 v-model="confirmPassword"
                 type="password"
                 class="form-control"
@@ -179,8 +182,9 @@ const register = async () => {
             </div>
 
             <div class="mb-3">
-              <label class="form-label">I am registering as</label>
+              <label for="register-role" class="form-label">I am registering as</label>
               <select
+                id="register-role"
                 v-model="role"
                 class="form-select"
                 :class="{ 'is-invalid': errors.role }"
