@@ -134,4 +134,30 @@ router.beforeEach(async (to) => {
   }
 });
 
+// Give every page its own browser-tab title (WCAG 2.4.2 Page Titled),
+// e.g. "Grants · GreenRoots Melbourne". Screen readers announce it on each page.
+const PAGE_TITLES = {
+  Home: "Home",
+  About: "About us",
+  "Access Denied": "Access denied",
+  Grants: "Grants",
+  GrantDetail: "Grant",
+  Map: "Map",
+  Events: "Planting days",
+  FireLogin: "Sign in",
+  FireRegister: "Register",
+  Profile: "My profile",
+  SendEmail: "Send email",
+  VolunteerDashboard: "Volunteer dashboard",
+  CorporateDashboard: "Corporate dashboard",
+  AdminDashboard: "Admin dashboard",
+  ChooseRole: "Choose your role",
+  NotFound: "Page not found",
+};
+
+router.afterEach((to) => {
+  const title = PAGE_TITLES[to.name];
+  document.title = title ? `${title} · GreenRoots Melbourne` : "GreenRoots Melbourne";
+});
+
 export default router;
