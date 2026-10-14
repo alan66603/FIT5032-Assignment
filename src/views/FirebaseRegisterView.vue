@@ -5,6 +5,7 @@ import { doc, setDoc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
 import { auth, db } from '@/firebase/init'
 import { DASHBOARD_PATHS } from '@/auth'
+import GoogleSignInButton from '@/components/GoogleSignInButton.vue'
 
 const email = ref('')
 const password = ref('')
@@ -199,6 +200,8 @@ const register = async () => {
             <button type="submit" class="btn btn-brand w-100 rounded-pill py-2 mb-3" :disabled="isSubmitting">
               {{ isSubmitting ? 'Registering…' : 'Register' }}
             </button>
+
+            <GoogleSignInButton class="mb-3" />
 
             <p class="text-center small text-muted">
               Already have an account? <router-link to="/FireLogin">Sign in</router-link>
