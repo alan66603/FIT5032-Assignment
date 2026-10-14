@@ -46,7 +46,25 @@ h3,
   letter-spacing: 0.12em;
   font-size: 0.8rem;
   font-weight: 600;
+  /* Dark green on light backgrounds: the light leaf green failed the
+     WCAG AA 4.5:1 contrast check there. */
+  color: var(--gr-green);
+}
+/* On the dark photo hero the leaf green has enough contrast. */
+.hero .eyebrow {
   color: var(--gr-leaf);
+}
+
+/* Skip link (WCAG 2.4.1): hidden until a keyboard user tabs to it. */
+.skip-link:focus {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  background: var(--gr-green);
+  color: #fff;
+  border-radius: 0.5rem;
 }
 
 /* ---------- Buttons ---------- */

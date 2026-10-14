@@ -55,6 +55,9 @@ onMounted(() => {
       .setLngLat([grant.lng, grant.lat])
       .setPopup(makePopup(grant))
       .addTo(map)
+    // MapBox labels every marker just "Map marker"; give screen-reader and
+    // keyboard users the grant's name instead.
+    markers[grant.id].getElement().setAttribute('aria-label', `${grant.project} (${grant.status})`)
   }
 
   // Coming from a grant's page (/map?grant=3): zoom to that grant, open its
@@ -350,11 +353,13 @@ const getDirections = async () => {
           role="region"
           aria-label="Map of grant projects in Melbourne"
         ></div>
-        <p class="small text-muted mt-2 mb-0">
-          Marker colours: <span class="text-success fw-semibold">green</span> = Approved,
-          <span class="text-warning fw-semibold">yellow</span> = In Review,
-          <span class="text-secondary fw-semibold">grey</span> = Declined,
-          <span class="text-primary fw-semibold">blue</span> = your searched place. Click a marker for details.
+        <!-- Legend: coloured dots with dark text, so the words pass the contrast check -->
+        <p class="small mt-2 mb-0">
+          <span class="legend-dot" style="background: #198754"></span> Approved
+          <span class="legend-dot ms-3" style="background: #ffc107"></span> In Review
+          <span class="legend-dot ms-3" style="background: #6c757d"></span> Declined
+          <span class="legend-dot ms-3" style="background: #0d6efd"></span> Your searched place
+          <span class="text-muted ms-2">· Click or press Enter on a marker for details.</span>
         </p>
       </div>
     </div>
@@ -365,6 +370,14 @@ const getDirections = async () => {
 .map {
   width: 100%;
   height: 600px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  vertical-align: middle;
 }
 
 .trip-stat {

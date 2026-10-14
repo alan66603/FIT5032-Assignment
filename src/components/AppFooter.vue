@@ -47,6 +47,9 @@ const year = new Date().getFullYear()
 .footer-link {
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
+  /* At least 24px tall so the links are easy to tap (target size). */
+  display: inline-block;
+  padding: 0.25rem 0;
 }
 .footer-link:hover {
   color: #fff;

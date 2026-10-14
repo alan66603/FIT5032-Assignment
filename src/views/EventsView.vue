@@ -47,6 +47,12 @@ const calendarOptions = computed(() => ({
     borderColor: eventColour(event),
   })),
   eventClick: (info) => openEvent(info.event.id),
+  // Keyboard users can Tab to each event and press Enter to open it.
+  eventInteractive: true,
+  // FullCalendar names each day cell after only its date number, but the cell
+  // also shows event titles. Removing aria-labelledby lets the cell be named
+  // by everything it contains.
+  dayCellDidMount: (info) => info.el.removeAttribute('aria-labelledby'),
   // Admins click an empty day to add an event on that day.
   dateClick: (info) => {
     if (isAdmin.value) openNewEvent(info.dateStr.slice(0, 10))
@@ -375,6 +381,15 @@ const saveNewEvent = async () => {
 .calendar :deep(.fc a) {
   color: inherit;
   text-decoration: none;
+}
+
+/* Days from the previous/next month: FullCalendar fades them to a very light
+   grey; use a darker grey that still passes the AA contrast check. */
+.calendar :deep(.fc .fc-day-other .fc-daygrid-day-top) {
+  opacity: 1;
+}
+.calendar :deep(.fc .fc-day-other .fc-daygrid-day-number) {
+  color: #6c757d;
 }
 
 .legend-dot {
