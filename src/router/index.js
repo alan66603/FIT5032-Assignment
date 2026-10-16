@@ -7,6 +7,7 @@ import GrantsView from "@/views/GrantsView.vue";
 import MapView from "@/views/MapView.vue";
 import GrantDetailView from "@/views/GrantDetailView.vue";
 import EventsView from "@/views/EventsView.vue";
+import EventDetailView from "@/views/EventDetailView.vue";
 import FirebaseSigninView from "@/views/FirebaseSigninView.vue";
 import FirebaseRegisterView from "@/views/FirebaseRegisterView.vue";
 import VolunteerDashboard from "@/views/dashboards/VolunteerDashboard.vue";
@@ -53,6 +54,12 @@ const routes = [
     path: "/events",
     name: "Events",
     component: EventsView,
+  },
+  {
+    // One planting day, e.g. /events/abc123 - the id is read with useRoute().params.id
+    path: "/events/:id",
+    name: "EventDetail",
+    component: EventDetailView,
   },
   {
     path: "/FireLogin",
@@ -144,6 +151,7 @@ const PAGE_TITLES = {
   GrantDetail: "Grant",
   Map: "Map",
   Events: "Planting days",
+  EventDetail: "Planting day",
   FireLogin: "Sign in",
   FireRegister: "Register",
   Profile: "My profile",

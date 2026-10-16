@@ -26,12 +26,21 @@ import { currentUser } from '@/auth'
 /** Every event, kept live with onSnapshot. start/end are turned into JS Dates. */
 export const events = ref([])
 
+/** False until the first snapshot arrives, so pages can tell "loading" from "not found". */
+export const eventsLoaded = ref(false)
+
 onSnapshot(collection(db, 'events'), (snapshot) => {
   events.value = snapshot.docs.map((eventDoc) => {
     const data = eventDoc.data()
     return { id: eventDoc.id, ...data, start: data.start.toDate(), end: data.end.toDate() }
   })
+  eventsLoaded.value = true
 })
+
+/** Events that haven't started yet, soonest first. */
+export const upcomingEvents = computed(() =>
+  events.value.filter((event) => event.start > new Date()).sort((a, b) => a.start - b.start),
+)
 
 /** The signed-in user's bookings, kept live. Empty when logged out. */
 export const myBookings = ref([])
