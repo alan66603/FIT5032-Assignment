@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 // grants is a computed list that includes status changes made by admins.
 import { grants } from '@/grantsStore'
+import { upcomingEvents } from '@/eventsStore'
 import { currentUser, userRole, DASHBOARD_PATHS } from '@/auth'
 
 // Headline numbers derived from the grant list, same computed() pattern as
@@ -15,6 +16,16 @@ const stats = computed(() => ({
 
 // Approved grants shown as photo cards in "Featured projects".
 const featuredGrants = computed(() => grants.value.filter((grant) => grant.status === 'Approved'))
+
+// The next three planting days from Firestore, and the very next one for the call to action.
+const nextEvents = computed(() => upcomingEvents.value.slice(0, 3))
+const nextEvent = computed(() => upcomingEvents.value[0] ?? null)
+const grantFor = (event) => grants.value.find((grant) => grant.id === event.grantId)
+
+const eventDay = (date) => date.toLocaleDateString('en-AU', { day: '2-digit' })
+const eventMonth = (date) => date.toLocaleDateString('en-AU', { month: 'short' })
+const eventTime = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
+const eventLongDate = (date) => date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
 
 const dashboardPath = computed(() => DASHBOARD_PATHS[userRole.value] ?? '/')
 
@@ -127,6 +138,39 @@ const helpCards = [
     </div>
   </section>
 
+  <!-- Upcoming planting days (real events from Firestore; each opens its own page) -->
+  <section class="container pb-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+      <div>
+        <p class="eyebrow mb-1">Join us</p>
+        <h2 class="fw-bold mb-0">Upcoming planting days</h2>
+      </div>
+      <router-link to="/events" class="btn btn-outline-brand rounded-pill px-4">All events</router-link>
+    </div>
+    <p v-if="nextEvents.length === 0" class="text-muted">No planting days scheduled yet. Check back soon!</p>
+    <div class="row g-4">
+      <div v-for="event in nextEvents" :key="event.id" class="col-md-4">
+        <router-link :to="`/events/${event.id}`" class="card card-hover h-100 p-4 text-reset text-decoration-none">
+          <div class="d-flex align-items-center mb-3">
+            <div class="date-box me-3" aria-hidden="true">
+              <div class="fw-bold fs-5">{{ eventDay(event.start) }}</div>
+              <div class="small text-uppercase">{{ eventMonth(event.start) }}</div>
+            </div>
+            <div>
+              <h3 class="h6 fw-bold mb-1">{{ event.title }}</h3>
+              <div class="small text-muted">{{ eventTime(event.start) }} – {{ eventTime(event.end) }}</div>
+            </div>
+          </div>
+          <p class="small text-muted mb-2">📍 {{ event.place }}</p>
+          <p v-if="grantFor(event)" class="small mb-3">🌳 {{ grantFor(event).project }}</p>
+          <span class="small fw-semibold text-brand mt-auto">
+            {{ event.bookedCount >= event.capacity ? 'Fully booked' : `${event.capacity - event.bookedCount} places left` }} →
+          </span>
+        </router-link>
+      </div>
+    </div>
+  </section>
+
   <!-- Featured projects -->
   <section class="bg-brand-soft py-5">
     <div class="container">
@@ -139,14 +183,15 @@ const helpCards = [
       </div>
       <div class="row g-4">
         <div v-for="grant in featuredGrants" :key="grant.id" class="col-md-4">
-          <div class="card card-hover h-100">
+          <!-- The whole card opens the grant's own page -->
+          <router-link :to="`/grants/${grant.id}`" class="card card-hover h-100 text-reset text-decoration-none">
             <img :src="grant.image" class="card-img-top" :alt="grant.project" />
             <div class="card-body">
               <span class="badge bg-brand-soft text-brand mb-2">📍 {{ grant.suburb }}</span>
               <h3 class="h5 fw-bold">{{ grant.project }}</h3>
               <p class="small text-muted mb-0">{{ grant.description }}</p>
             </div>
-          </div>
+          </router-link>
         </div>
       </div>
     </div>
@@ -170,13 +215,34 @@ const helpCards = [
   <section class="container">
     <div class="bg-brand rounded-4 p-5 text-center">
       <h2 class="fw-bold mb-2">Ready to get your hands dirty?</h2>
-      <p class="mb-4 opacity-75">Our next community planting day is Saturday 25 October in Kensington.</p>
-      <router-link class="btn btn-light rounded-pill px-4" to="/FireRegister">Sign up to volunteer</router-link>
+      <!-- The real next planting day from Firestore -->
+      <p v-if="nextEvent" class="mb-4 opacity-75">
+        Our next community planting day is {{ nextEvent.title }} on {{ eventLongDate(nextEvent.start) }}
+        at {{ nextEvent.place }}.
+      </p>
+      <p v-else class="mb-4 opacity-75">New planting days are added every month.</p>
+      <router-link v-if="nextEvent" class="btn btn-light rounded-pill px-4 me-2 mb-2" :to="`/events/${nextEvent.id}`">
+        See this planting day
+      </router-link>
+      <router-link v-if="!currentUser" class="btn btn-outline-light rounded-pill px-4 mb-2" to="/FireRegister">
+        Sign up to volunteer
+      </router-link>
     </div>
   </section>
 </template>
 
 <style scoped>
+.date-box {
+  width: 3.5rem;
+  text-align: center;
+  padding: 0.4rem 0;
+  border-radius: 0.75rem;
+  background-color: var(--gr-green-soft);
+  color: var(--gr-green);
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
 /* Two backgrounds stacked: a see-through green gradient on top of the photo */
 .hero {
   min-height: 70vh;
