@@ -122,9 +122,9 @@ const bookingsOptions = {
   scales: { x: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }, y: { stacked: true } },
   plugins: { legend: { position: 'bottom' } },
   onHover: pointerOnHover,
-  // Click a bar to open that event on the Events page.
+  // Click a bar to open that event's own page.
   onClick: (event, elements) => {
-    if (elements.length) router.push(`/events?event=${upcomingEvents.value[elements[0].index].id}`)
+    if (elements.length) router.push(`/events/${upcomingEvents.value[elements[0].index].id}`)
   },
 }
 

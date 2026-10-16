@@ -234,7 +234,9 @@ const saveNewEvent = async () => {
     <div class="row g-3">
       <div v-for="event in upcomingEvents" :key="event.id" class="col-md-6 col-lg-4">
         <div class="card p-3 h-100">
-          <h3 class="h6 fw-bold mb-1">{{ event.title }}</h3>
+          <h3 class="h6 fw-bold mb-1">
+            <router-link :to="`/events/${event.id}`" class="text-reset">{{ event.title }}</router-link>
+          </h3>
           <p v-if="grantFor(event)" class="small mb-1">
             🌳 <router-link :to="`/grants/${event.grantId}`" class="text-brand">{{ grantFor(event).project }}</router-link>
           </p>
@@ -271,6 +273,9 @@ const saveNewEvent = async () => {
       </p>
       <p class="mb-1">📅 {{ formatDateTime(selectedEvent.start) }} – {{ formatTime(selectedEvent.end) }}</p>
       <p class="mb-2">📍 {{ selectedEvent.place }}</p>
+      <p class="mb-2">
+        <router-link :to="`/events/${selectedEvent.id}`" class="text-brand small">View this planting day's page →</router-link>
+      </p>
       <p v-if="selectedEvent.description" class="text-muted">{{ selectedEvent.description }}</p>
       <p class="fw-semibold">
         {{ selectedEvent.bookedCount }} / {{ selectedEvent.capacity }} places booked

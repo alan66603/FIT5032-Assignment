@@ -139,7 +139,7 @@ const toggleBooking = async (event) => {
               class="d-flex flex-wrap align-items-center gap-2 py-3 border-bottom"
             >
               <div class="flex-grow-1">
-                <div class="fw-semibold">{{ event.title }}</div>
+                <router-link :to="`/events/${event.id}`" class="fw-semibold text-brand">{{ event.title }}</router-link>
                 <div class="small text-muted">📅 {{ formatDateTime(event.start) }} · 📍 {{ event.place }}</div>
                 <div class="small">{{ event.bookedCount }} / {{ event.capacity }} places booked</div>
               </div>
@@ -163,7 +163,7 @@ const toggleBooking = async (event) => {
             <h2 class="h5 fw-bold mb-3">Past planting days</h2>
             <p v-if="pastEvents.length === 0" class="text-muted mb-0">No past planting days yet.</p>
             <div v-for="event in pastEvents" :key="event.id" class="py-2 border-bottom">
-              <div class="fw-semibold">{{ event.title }}</div>
+              <router-link :to="`/events/${event.id}`" class="fw-semibold text-brand">{{ event.title }}</router-link>
               <div class="small text-muted">
                 📅 {{ formatDateTime(event.start) }} · {{ event.bookedCount }} volunteers took part
               </div>

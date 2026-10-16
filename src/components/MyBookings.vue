@@ -33,8 +33,8 @@ const time = (date) => date.toLocaleTimeString('en-AU', { hour: 'numeric', minut
         <div class="small text-uppercase">{{ month(event.start) }}</div>
       </div>
       <div class="flex-grow-1">
-        <!-- Opens this event's details on the Events page -->
-        <router-link :to="`/events?event=${event.id}`" class="fw-semibold text-brand event-link">
+        <!-- Opens this event's own page -->
+        <router-link :to="`/events/${event.id}`" class="fw-semibold text-brand event-link">
           {{ event.title }}
         </router-link>
         <div class="small text-muted">
